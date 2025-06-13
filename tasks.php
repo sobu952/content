@@ -33,7 +33,6 @@ if ($_POST && isset($_POST['action']) && $_POST['action'] === 'create_task') {
     $content_type_id = intval($_POST['content_type_id']);
     $task_name = trim($_POST['task_name']);
     $strictness_level = floatval($_POST['strictness_level']);
-    $urls = array_filter(array_map('trim', explode("\n", $_POST['urls'])));
     
     // Sprawdź czy projekt należy do użytkownika
     $stmt = $pdo->prepare("SELECT id FROM projects WHERE id = ? AND user_id = ?");
@@ -42,8 +41,6 @@ if ($_POST && isset($_POST['action']) && $_POST['action'] === 'create_task') {
         $error = 'Nieprawidłowy projekt.';
     } elseif (empty($task_name)) {
         $error = 'Nazwa zadania jest wymagana.';
-    } elseif (empty($urls)) {
-        $error = 'Musisz podać co najmniej jeden URL.';
     } else {
         try {
             $pdo->beginTransaction();
@@ -59,33 +56,44 @@ if ($_POST && isset($_POST['action']) && $_POST['action'] === 'create_task') {
             $stmt->execute([$task_project_id, $content_type_id, $task_name, $strictness_level]);
             $task_id = $pdo->lastInsertId();
             
-            // Dodaj elementy zadania dla każdego URL
-            foreach ($urls as $url) {
-                if (empty($url)) continue;
-                
-                // Zbierz dane dla każdego pola
-                $input_data = ['url' => $url];
-                foreach ($fields as $field_key => $field_config) {
-                    if ($field_key === 'url') continue;
+            // Sprawdź ile URL-i zostało dodanych
+            $url_count = 0;
+            if (isset($_POST['urls']) && is_array($_POST['urls'])) {
+                foreach ($_POST['urls'] as $index => $url) {
+                    if (empty(trim($url))) continue;
                     
-                    $field_value = isset($_POST[$field_key]) ? $_POST[$field_key] : '';
-                    if ($field_config['type'] === 'checkbox') {
-                        $field_value = isset($_POST[$field_key]) ? 'TAK' : 'NIE';
+                    // Zbierz dane dla każdego pola dla tego konkretnego URL
+                    $input_data = ['url' => trim($url)];
+                    foreach ($fields as $field_key => $field_config) {
+                        if ($field_key === 'url') continue;
+                        
+                        $field_value = '';
+                        if ($field_config['type'] === 'checkbox') {
+                            $field_value = isset($_POST[$field_key][$index]) ? 'TAK' : 'NIE';
+                        } else {
+                            $field_value = isset($_POST[$field_key][$index]) ? $_POST[$field_key][$index] : '';
+                        }
+                        $input_data[$field_key] = $field_value;
                     }
-                    $input_data[$field_key] = $field_value;
+                    
+                    $stmt = $pdo->prepare("INSERT INTO task_items (task_id, url, input_data) VALUES (?, ?, ?)");
+                    $stmt->execute([$task_id, trim($url), json_encode($input_data)]);
+                    $task_item_id = $pdo->lastInsertId();
+                    
+                    // Dodaj do kolejki
+                    $stmt = $pdo->prepare("INSERT INTO task_queue (task_item_id) VALUES (?)");
+                    $stmt->execute([$task_item_id]);
+                    
+                    $url_count++;
                 }
-                
-                $stmt = $pdo->prepare("INSERT INTO task_items (task_id, url, input_data) VALUES (?, ?, ?)");
-                $stmt->execute([$task_id, $url, json_encode($input_data)]);
-                $task_item_id = $pdo->lastInsertId();
-                
-                // Dodaj do kolejki
-                $stmt = $pdo->prepare("INSERT INTO task_queue (task_item_id) VALUES (?)");
-                $stmt->execute([$task_item_id]);
+            }
+            
+            if ($url_count === 0) {
+                throw new Exception('Musisz dodać co najmniej jeden URL.');
             }
             
             $pdo->commit();
-            $success = 'Zadanie zostało utworzone i dodane do kolejki.';
+            $success = "Zadanie zostało utworzone z $url_count elementami i dodane do kolejki.";
             
         } catch(Exception $e) {
             $pdo->rollBack();
@@ -127,6 +135,25 @@ $tasks = $stmt->fetchAll();
     <title>Zadania - Generator treści SEO</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .url-item {
+            border: 1px solid #dee2e6;
+            border-radius: 0.375rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            background-color: #f8f9fa;
+        }
+        .url-item-header {
+            display: flex;
+            justify-content-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        .remove-url-btn {
+            color: #dc3545;
+            cursor: pointer;
+        }
+    </style>
 </head>
 <body>
     <?php include 'header.php'; ?>
@@ -258,7 +285,7 @@ $tasks = $stmt->fetchAll();
     
     <!-- Modal dodawania zadania -->
     <div class="modal fade" id="taskModal" tabindex="-1">
-        <div class="modal-dialog modal-lg">
+        <div class="modal-dialog modal-xl">
             <div class="modal-content">
                 <form method="POST" id="taskForm">
                     <input type="hidden" name="action" value="create_task">
@@ -309,14 +336,17 @@ $tasks = $stmt->fetchAll();
                             </div>
                         </div>
                         
-                        <div class="mb-3">
-                            <label for="urls" class="form-label">Adresy URL (jeden w każdej linii) *</label>
-                            <textarea class="form-control" name="urls" rows="5" required 
-                                      placeholder="https://example.com/category1&#10;https://example.com/category2"></textarea>
+                        <hr>
+                        
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="mb-0">Adresy URL i ich parametry</h6>
+                            <button type="button" class="btn btn-outline-primary btn-sm" onclick="addUrlItem()">
+                                <i class="fas fa-plus"></i> Dodaj kolejny URL
+                            </button>
                         </div>
                         
-                        <div id="content_type_fields">
-                            <!-- Pola będą wczytane przez JavaScript -->
+                        <div id="url_items_container">
+                            <!-- URL items będą dodawane przez JavaScript -->
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -331,6 +361,8 @@ $tasks = $stmt->fetchAll();
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         const contentTypes = <?= json_encode($content_types) ?>;
+        let currentFields = {};
+        let urlItemIndex = 0;
         
         function updateStrictnessValue(value) {
             document.getElementById('strictness_value').textContent = value;
@@ -346,50 +378,103 @@ $tasks = $stmt->fetchAll();
         
         async function loadContentTypeFields() {
             const contentTypeId = document.getElementById('content_type_id').value;
-            const fieldsContainer = document.getElementById('content_type_fields');
             
             if (!contentTypeId) {
-                fieldsContainer.innerHTML = '';
+                currentFields = {};
+                document.getElementById('url_items_container').innerHTML = '';
                 return;
             }
             
             try {
                 const response = await fetch('ajax_content_type_fields.php?id=' + contentTypeId);
                 const data = await response.json();
+                currentFields = data.fields;
                 
-                let html = '<h6>Pola dla typu treści:</h6>';
+                // Wyczyść istniejące URL items i dodaj pierwszy
+                document.getElementById('url_items_container').innerHTML = '';
+                urlItemIndex = 0;
+                addUrlItem();
                 
-                for (const [fieldKey, fieldConfig] of Object.entries(data.fields)) {
-                    if (fieldKey === 'url') continue; // URL jest już obsługiwany oddzielnie
-                    
-                    html += '<div class="mb-3">';
-                    html += '<label for="' + fieldKey + '" class="form-label">' + fieldConfig.label;
-                    if (fieldConfig.required) html += ' *';
-                    html += '</label>';
-                    
-                    if (fieldConfig.type === 'textarea') {
-                        html += '<textarea class="form-control" name="' + fieldKey + '" id="' + fieldKey + '"';
-                        if (fieldConfig.required) html += ' required';
-                        html += '></textarea>';
-                    } else if (fieldConfig.type === 'checkbox') {
-                        html += '<div class="form-check">';
-                        html += '<input class="form-check-input" type="checkbox" name="' + fieldKey + '" id="' + fieldKey + '">';
-                        html += '<label class="form-check-label" for="' + fieldKey + '">' + fieldConfig.label + '</label>';
-                        html += '</div>';
-                    } else {
-                        html += '<input type="' + fieldConfig.type + '" class="form-control" name="' + fieldKey + '" id="' + fieldKey + '"';
-                        if (fieldConfig.required) html += ' required';
-                        html += '>';
-                    }
-                    
-                    html += '</div>';
-                }
-                
-                fieldsContainer.innerHTML = html;
             } catch (error) {
                 console.error('Error loading content type fields:', error);
             }
         }
+        
+        function addUrlItem() {
+            const container = document.getElementById('url_items_container');
+            const index = urlItemIndex++;
+            
+            let html = `
+                <div class="url-item" data-index="${index}">
+                    <div class="url-item-header">
+                        <h6 class="mb-0">URL #${index + 1}</h6>
+                        ${index > 0 ? `<i class="fas fa-times remove-url-btn" onclick="removeUrlItem(${index})"></i>` : ''}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Adres URL *</label>
+                        <input type="url" class="form-control" name="urls[${index}]" required 
+                               placeholder="https://example.com/category">
+                    </div>
+            `;
+            
+            // Dodaj pola dla typu treści (pomijając URL które już mamy)
+            for (const [fieldKey, fieldConfig] of Object.entries(currentFields)) {
+                if (fieldKey === 'url') continue;
+                
+                html += '<div class="mb-3">';
+                html += `<label class="form-label">${fieldConfig.label}`;
+                if (fieldConfig.required) html += ' *';
+                html += '</label>';
+                
+                if (fieldConfig.type === 'textarea') {
+                    html += `<textarea class="form-control" name="${fieldKey}[${index}]"`;
+                    if (fieldConfig.required) html += ' required';
+                    html += '></textarea>';
+                } else if (fieldConfig.type === 'checkbox') {
+                    html += '<div class="form-check">';
+                    html += `<input class="form-check-input" type="checkbox" name="${fieldKey}[${index}]">`;
+                    html += `<label class="form-check-label">${fieldConfig.label}</label>`;
+                    html += '</div>';
+                } else {
+                    html += `<input type="${fieldConfig.type}" class="form-control" name="${fieldKey}[${index}]"`;
+                    if (fieldConfig.required) html += ' required';
+                    html += '>';
+                }
+                
+                html += '</div>';
+            }
+            
+            html += '</div>';
+            
+            container.insertAdjacentHTML('beforeend', html);
+        }
+        
+        function removeUrlItem(index) {
+            const item = document.querySelector(`[data-index="${index}"]`);
+            if (item) {
+                item.remove();
+                updateUrlItemNumbers();
+            }
+        }
+        
+        function updateUrlItemNumbers() {
+            const items = document.querySelectorAll('.url-item');
+            items.forEach((item, index) => {
+                const header = item.querySelector('h6');
+                if (header) {
+                    header.textContent = `URL #${index + 1}`;
+                }
+            });
+        }
+        
+        // Reset modal when closed
+        document.getElementById('taskModal').addEventListener('hidden.bs.modal', function () {
+            document.getElementById('content_type_id').value = '';
+            document.getElementById('url_items_container').innerHTML = '';
+            currentFields = {};
+            urlItemIndex = 0;
+        });
     </script>
 </body>
 </html>
