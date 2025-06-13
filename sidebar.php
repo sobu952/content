@@ -48,6 +48,11 @@
                     <i class="fas fa-cog"></i> Ustawienia
                 </a>
             </li>
+            <li class="nav-item">
+                <a class="nav-link <?= basename($_SERVER['PHP_SELF']) == 'test_api.php' ? 'active' : '' ?>" href="test_api.php">
+                    <i class="fas fa-flask"></i> Test API
+                </a>
+            </li>
         </ul>
         <?php endif; ?>
     </div>

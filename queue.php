@@ -24,13 +24,49 @@ if ($_POST && isset($_POST['action']) && $_POST['action'] === 'force_generate') 
     if ($stmt->fetch()) {
         try {
             // Ustaw wysoki priorytet i zresetuj status
-            $stmt = $pdo->prepare("UPDATE task_queue SET priority = 100, status = 'pending', attempts = 0 WHERE id = ?");
+            $stmt = $pdo->prepare("UPDATE task_queue SET priority = 100, status = 'pending', attempts = 0, error_message = NULL WHERE id = ?");
             $stmt->execute([$queue_id]);
             
             $success = 'Zadanie zostało dodane do pierwszeństwa w kolejce.';
             
         } catch(Exception $e) {
             $error = 'Błąd aktualizacji kolejki: ' . $e->getMessage();
+        }
+    } else {
+        $error = 'Nieprawidłowe zadanie.';
+    }
+}
+
+// Obsługa usuwania z kolejki
+if ($_POST && isset($_POST['action']) && $_POST['action'] === 'remove_from_queue') {
+    $queue_id = intval($_POST['queue_id']);
+    
+    // Sprawdź czy element kolejki należy do użytkownika
+    $stmt = $pdo->prepare("
+        SELECT tq.task_item_id 
+        FROM task_queue tq
+        JOIN task_items ti ON tq.task_item_id = ti.id
+        JOIN tasks t ON ti.task_id = t.id
+        JOIN projects p ON t.project_id = p.id
+        WHERE tq.id = ? AND p.user_id = ?
+    ");
+    $stmt->execute([$queue_id, $_SESSION['user_id']]);
+    $result = $stmt->fetch();
+    
+    if ($result) {
+        try {
+            // Usuń z kolejki
+            $stmt = $pdo->prepare("DELETE FROM task_queue WHERE id = ?");
+            $stmt->execute([$queue_id]);
+            
+            // Ustaw status elementu zadania na failed
+            $stmt = $pdo->prepare("UPDATE task_items SET status = 'failed' WHERE id = ?");
+            $stmt->execute([$result['task_item_id']]);
+            
+            $success = 'Element został usunięty z kolejki.';
+            
+        } catch(Exception $e) {
+            $error = 'Błąd usuwania z kolejki: ' . $e->getMessage();
         }
     } else {
         $error = 'Nieprawidłowe zadanie.';
@@ -49,6 +85,26 @@ $stmt = $pdo->prepare("
 ");
 $stmt->execute([$_SESSION['user_id']]);
 $queue_items = $stmt->fetchAll();
+
+// Pobierz statystyki kolejki
+$stmt = $pdo->prepare("
+    SELECT 
+        tq.status,
+        COUNT(*) as count
+    FROM task_queue tq
+    JOIN task_items ti ON tq.task_item_id = ti.id
+    JOIN tasks t ON ti.task_id = t.id
+    JOIN projects p ON t.project_id = p.id
+    WHERE p.user_id = ?
+    GROUP BY tq.status
+");
+$stmt->execute([$_SESSION['user_id']]);
+$queue_stats = $stmt->fetchAll();
+
+$stats_by_status = [];
+foreach ($queue_stats as $stat) {
+    $stats_by_status[$stat['status']] = $stat['count'];
+}
 ?>
 
 <!DOCTYPE html>
@@ -73,6 +129,11 @@ $queue_items = $stmt->fetchAll();
                     <h1 class="h2">Kolejka zadań</h1>
                     <div>
                         <small class="text-muted">Automatyczne odświeżanie co 30 sekund</small>
+                        <?php if (isAdmin()): ?>
+                            <a href="process_queue.php" target="_blank" class="btn btn-sm btn-outline-info ms-2">
+                                <i class="fas fa-flask"></i> Test procesora
+                            </a>
+                        <?php endif; ?>
                     </div>
                 </div>
                 
@@ -89,6 +150,42 @@ $queue_items = $stmt->fetchAll();
                         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                     </div>
                 <?php endif; ?>
+                
+                <!-- Statystyki kolejki -->
+                <div class="row mb-4">
+                    <div class="col-md-3">
+                        <div class="card text-white bg-warning">
+                            <div class="card-body text-center">
+                                <h4><?= $stats_by_status['pending'] ?? 0 ?></h4>
+                                <small>Oczekuje</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card text-white bg-info">
+                            <div class="card-body text-center">
+                                <h4><?= $stats_by_status['processing'] ?? 0 ?></h4>
+                                <small>Przetwarzanie</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card text-white bg-success">
+                            <div class="card-body text-center">
+                                <h4><?= $stats_by_status['completed'] ?? 0 ?></h4>
+                                <small>Ukończone</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card text-white bg-danger">
+                            <div class="card-body text-center">
+                                <h4><?= $stats_by_status['failed'] ?? 0 ?></h4>
+                                <small>Błędy</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 
                 <?php if (empty($queue_items)): ?>
                     <div class="text-center py-5">
@@ -155,24 +252,38 @@ $queue_items = $stmt->fetchAll();
                                                 </td>
                                                 <td><?= date('d.m.Y H:i:s', strtotime($item['created_at'])) ?></td>
                                                 <td>
-                                                    <?php if ($item['status'] === 'pending' || $item['status'] === 'failed'): ?>
-                                                        <form method="POST" style="display: inline;">
-                                                            <input type="hidden" name="action" value="force_generate">
-                                                            <input type="hidden" name="queue_id" value="<?= $item['id'] ?>">
-                                                            <button type="submit" class="btn btn-sm btn-outline-primary" 
-                                                                    title="Wymusz generowanie natychmiast">
-                                                                <i class="fas fa-bolt"></i>
+                                                    <div class="btn-group">
+                                                        <?php if ($item['status'] === 'pending' || $item['status'] === 'failed'): ?>
+                                                            <form method="POST" style="display: inline;">
+                                                                <input type="hidden" name="action" value="force_generate">
+                                                                <input type="hidden" name="queue_id" value="<?= $item['id'] ?>">
+                                                                <button type="submit" class="btn btn-sm btn-outline-primary" 
+                                                                        title="Wymusz generowanie natychmiast">
+                                                                    <i class="fas fa-bolt"></i>
+                                                                </button>
+                                                            </form>
+                                                        <?php endif; ?>
+                                                        
+                                                        <?php if ($item['status'] !== 'completed'): ?>
+                                                            <form method="POST" style="display: inline;">
+                                                                <input type="hidden" name="action" value="remove_from_queue">
+                                                                <input type="hidden" name="queue_id" value="<?= $item['id'] ?>">
+                                                                <button type="submit" class="btn btn-sm btn-outline-danger" 
+                                                                        title="Usuń z kolejki"
+                                                                        onclick="return confirm('Czy na pewno chcesz usunąć to zadanie z kolejki?')">
+                                                                    <i class="fas fa-trash"></i>
+                                                                </button>
+                                                            </form>
+                                                        <?php endif; ?>
+                                                        
+                                                        <?php if ($item['error_message']): ?>
+                                                            <button class="btn btn-sm btn-outline-warning" 
+                                                                    onclick="showError('<?= htmlspecialchars(addslashes($item['error_message'])) ?>')"
+                                                                    title="Pokaż błąd">
+                                                                <i class="fas fa-exclamation-circle"></i>
                                                             </button>
-                                                        </form>
-                                                    <?php endif; ?>
-                                                    
-                                                    <?php if ($item['error_message']): ?>
-                                                        <button class="btn btn-sm btn-outline-danger" 
-                                                                onclick="showError('<?= htmlspecialchars($item['error_message']) ?>')"
-                                                                title="Pokaż błąd">
-                                                            <i class="fas fa-exclamation-circle"></i>
-                                                        </button>
-                                                    <?php endif; ?>
+                                                        <?php endif; ?>
+                                                    </div>
                                                 </td>
                                             </tr>
                                         <?php endforeach; ?>
@@ -186,10 +297,30 @@ $queue_items = $stmt->fetchAll();
         </div>
     </div>
     
+    <!-- Modal błędu -->
+    <div class="modal fade" id="errorModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Szczegóły błędu</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <pre id="errorContent" class="bg-light p-3"></pre>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Zamknij</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         function showError(message) {
-            alert('Błąd: ' + message);
+            document.getElementById('errorContent').textContent = message;
+            var modal = new bootstrap.Modal(document.getElementById('errorModal'));
+            modal.show();
         }
     </script>
 </body>
