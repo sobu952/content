@@ -1,6 +1,10 @@
 <?php
 require_once 'auth_check.php';
 
+// Ustawienie kodowania wewnętrznego dla funkcji multibyte, jeśli nie jest już ustawione globalnie
+// To jest ważne dla poprawnego liczenia znaków w UTF-8
+mb_internal_encoding('UTF-8');
+
 if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
     header('Location: tasks.php');
     exit;
@@ -219,11 +223,16 @@ $content_type_fields = json_decode($task['fields'], true);
                                                 </td>
                                                 <td>
                                                     <?php if ($item['verified_text'] || $item['generated_text']): ?>
+                                                        <?php
+                                                            // Wybierz tekst do wyświetlenia i policzenia znaków
+                                                            $displayed_text = $item['verified_text'] ?: $item['generated_text'];
+                                                            $char_count = mb_strlen($displayed_text);
+                                                        ?>
                                                         <div class="content-preview">
-                                                            <?= $item['verified_text'] ?: $item['generated_text'] ?>
+                                                            <?= $displayed_text ?>
                                                         </div>
                                                         <small class="text-muted">
-                                                            Status: <?= $item['content_status'] === 'verified' ? 'Zweryfikowane' : 'Wygenerowane' ?>
+                                                            Status: <?= $item['content_status'] === 'verified' ? 'Zweryfikowane' : 'Wygenerowane' ?> | (<?= $char_count ?> znaków ze spacjami)
                                                         </small>
                                                     <?php else: ?>
                                                         <span class="text-muted">Brak treści</span>

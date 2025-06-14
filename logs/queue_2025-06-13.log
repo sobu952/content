@@ -1,0 +1,557 @@
+[2025-06-13 13:13:53] Processing task item ID: 1
+[2025-06-13 13:13:53] Task item data: {"id":"1","0":"1","task_id":"1","1":"1","url":"https:\/\/nagomi.pl\/pl\/1822-zegary","2":"https:\/\/nagomi.pl\/pl\/1822-zegary","input_data":"{\"url\":\"https:\\\/\\\/nagomi.pl\\\/pl\\\/1822-zegary\",\"keywords\":\"japo\\u0144skie zegary na \\u015bcian\\u0119\\r\\ndekoracyjne zegary z Japonii\\r\\nr\\u0119cznie robione zegary orientalne\",\"headings\":\"\",\"characters\":\"2000\",\"lead\":\"TAK\",\"internal_linking\":\"\"}","3":"{\"url\":\"https:\\\/\\\/nagomi.pl\\\/pl\\\/1822-zegary\",\"keywords\":\"japo\\u0144skie zegary na \\u015bcian\\u0119\\r\\ndekoracyjne zegary z Japonii\\r\\nr\\u0119cznie robione zegary orientalne\",\"headings\":\"\",\"characters\":\"2000\",\"lead\":\"TAK\",\"internal_linking\":\"\"}","status":"processing","4":"processing","created_at":"2025-06-13 12:50:15","5":"2025-06-13 12:50:15","strictness_level":"0.5","6":"0.5","content_type_id":"1","7":"1"}
+[2025-06-13 13:13:53] Input data: {"url":"https:\/\/nagomi.pl\/pl\/1822-zegary","keywords":"japo\u0144skie zegary na \u015bcian\u0119\r\ndekoracyjne zegary z Japonii\r\nr\u0119cznie robione zegary orientalne","headings":"","characters":"2000","lead":"TAK","internal_linking":""}
+[2025-06-13 13:13:53] Replaced {url} with: https://nagomi.pl/pl/1822-zegary
+[2025-06-13 13:13:53] Replaced {keywords} with: japońskie zegary na ścianę
+dekoracyjne zegary z Japonii
+ręcznie robione zegary orientalne
+[2025-06-13 13:13:53] Replaced {headings} with: 
+[2025-06-13 13:13:53] Replaced {characters} with: 2000
+[2025-06-13 13:13:53] Replaced {lead} with: TAK
+[2025-06-13 13:13:53] Replaced {internal_linking} with: 
+[2025-06-13 13:13:53] Replaced {strictness_level} with: 0.5
+[2025-06-13 13:13:53] Final prompt length: 7858
+[2025-06-13 13:13:53] Calling Gemini API with prompt length: 7858
+[2025-06-13 13:13:59] API Response HTTP Code: 200
+[2025-06-13 13:13:59] API Response structure: Array
+(
+    [0] => candidates
+    [1] => usageMetadata
+    [2] => modelVersion
+    [3] => responseId
+)
+
+[2025-06-13 13:13:59] Generated text length: 3004
+[2025-06-13 13:13:59] Content generated successfully, length: 3004
+[2025-06-13 13:13:59] Verifying content...
+[2025-06-13 13:13:59] Calling Gemini API with prompt length: 6853
+[2025-06-13 13:14:04] API Response HTTP Code: 200
+[2025-06-13 13:14:04] API Response structure: Array
+(
+    [0] => candidates
+    [1] => usageMetadata
+    [2] => modelVersion
+    [3] => responseId
+)
+
+[2025-06-13 13:14:04] Generated text length: 2917
+[2025-06-13 13:14:04] Content verified successfully, length: 2917
+[2025-06-13 13:14:04] Content generated and verified successfully
+[2025-06-13 13:14:04] Task 1 status updated to: completed
+[2025-06-13 13:24:39] Processing task item ID: 3
+[2025-06-13 13:24:39] Task item data: {"id":"3","0":"3","task_id":"2","1":"2","url":"https:\/\/nagomi.pl\/pl\/1822-zegary","2":"https:\/\/nagomi.pl\/pl\/1822-zegary","input_data":"{\"url\":\"https:\\\/\\\/nagomi.pl\\\/pl\\\/1822-zegary\",\"keywords\":\"japo\\u0144skie zegary na \\u015bcian\\u0119\\r\\ndekoracyjne zegary z Japonii\\r\\nr\\u0119cznie robione zegary orientalne\",\"headings\":\"\",\"characters\":\"2500\",\"lead\":\"TAK\",\"internal_linking\":\"\"}","3":"{\"url\":\"https:\\\/\\\/nagomi.pl\\\/pl\\\/1822-zegary\",\"keywords\":\"japo\\u0144skie zegary na \\u015bcian\\u0119\\r\\ndekoracyjne zegary z Japonii\\r\\nr\\u0119cznie robione zegary orientalne\",\"headings\":\"\",\"characters\":\"2500\",\"lead\":\"TAK\",\"internal_linking\":\"\"}","status":"processing","4":"processing","created_at":"2025-06-13 13:23:38","5":"2025-06-13 13:23:38","strictness_level":"0.5","6":"0.5","content_type_id":"1","7":"1"}
+[2025-06-13 13:24:39] Input data: {"url":"https:\/\/nagomi.pl\/pl\/1822-zegary","keywords":"japo\u0144skie zegary na \u015bcian\u0119\r\ndekoracyjne zegary z Japonii\r\nr\u0119cznie robione zegary orientalne","headings":"","characters":"2500","lead":"TAK","internal_linking":""}
+[2025-06-13 13:24:39] Replaced {url} with: https://nagomi.pl/pl/1822-zegary
+[2025-06-13 13:24:39] Replaced {keywords} with: japońskie zegary na ścianę
+dekoracyjne zegary z Japonii
+ręcznie robione zegary orientalne
+[2025-06-13 13:24:39] Replaced {headings} with: 
+[2025-06-13 13:24:39] Replaced {characters} with: 2500
+[2025-06-13 13:24:39] Replaced {lead} with: TAK
+[2025-06-13 13:24:39] Replaced {internal_linking} with: 
+[2025-06-13 13:24:39] Replaced {strictness_level} with: 0.5
+[2025-06-13 13:24:39] Final prompt length: 7858
+[2025-06-13 13:24:39] Calling Gemini API with prompt length: 7858
+[2025-06-13 13:24:44] API Response HTTP Code: 200
+[2025-06-13 13:24:44] API Response structure: Array
+(
+    [0] => candidates
+    [1] => usageMetadata
+    [2] => modelVersion
+    [3] => responseId
+)
+
+[2025-06-13 13:24:44] Generated text length: 2919
+[2025-06-13 13:24:44] Content generated successfully, length: 2919
+[2025-06-13 13:24:44] Verifying content...
+[2025-06-13 13:24:44] Calling Gemini API with prompt length: 6768
+[2025-06-13 13:24:50] API Response HTTP Code: 200
+[2025-06-13 13:24:50] API Response structure: Array
+(
+    [0] => candidates
+    [1] => usageMetadata
+    [2] => modelVersion
+    [3] => responseId
+)
+
+[2025-06-13 13:24:50] Generated text length: 2893
+[2025-06-13 13:24:50] Content verified successfully, length: 2893
+[2025-06-13 13:24:50] Content generated and verified successfully
+[2025-06-13 13:24:50] Task 2 status updated to: processing
+[2025-06-13 13:25:23] Processing task item ID: 2
+[2025-06-13 13:25:23] Task item data: {"id":"2","0":"2","task_id":"2","1":"2","url":"https:\/\/nagomi.pl\/pl\/1803-talerze","2":"https:\/\/nagomi.pl\/pl\/1803-talerze","input_data":"{\"url\":\"https:\\\/\\\/nagomi.pl\\\/pl\\\/1803-talerze\",\"keywords\":\"japo\\u0144skie talerze ceramiczne\\r\\ntalerze do sushi i sashimi\\r\\nr\\u0119cznie robione talerze z Japonii\",\"headings\":\"\",\"characters\":\"2500\",\"lead\":\"TAK\",\"internal_linking\":\"\"}","3":"{\"url\":\"https:\\\/\\\/nagomi.pl\\\/pl\\\/1803-talerze\",\"keywords\":\"japo\\u0144skie talerze ceramiczne\\r\\ntalerze do sushi i sashimi\\r\\nr\\u0119cznie robione talerze z Japonii\",\"headings\":\"\",\"characters\":\"2500\",\"lead\":\"TAK\",\"internal_linking\":\"\"}","status":"processing","4":"processing","created_at":"2025-06-13 13:23:38","5":"2025-06-13 13:23:38","strictness_level":"0.5","6":"0.5","content_type_id":"1","7":"1"}
+[2025-06-13 13:25:23] Input data: {"url":"https:\/\/nagomi.pl\/pl\/1803-talerze","keywords":"japo\u0144skie talerze ceramiczne\r\ntalerze do sushi i sashimi\r\nr\u0119cznie robione talerze z Japonii","headings":"","characters":"2500","lead":"TAK","internal_linking":""}
+[2025-06-13 13:25:23] Replaced {url} with: https://nagomi.pl/pl/1803-talerze
+[2025-06-13 13:25:23] Replaced {keywords} with: japońskie talerze ceramiczne
+talerze do sushi i sashimi
+ręcznie robione talerze z Japonii
+[2025-06-13 13:25:23] Replaced {headings} with: 
+[2025-06-13 13:25:23] Replaced {characters} with: 2500
+[2025-06-13 13:25:23] Replaced {lead} with: TAK
+[2025-06-13 13:25:23] Replaced {internal_linking} with: 
+[2025-06-13 13:25:23] Replaced {strictness_level} with: 0.5
+[2025-06-13 13:25:23] Final prompt length: 7851
+[2025-06-13 13:25:23] Calling Gemini API with prompt length: 7851
+[2025-06-13 13:25:27] API Response HTTP Code: 200
+[2025-06-13 13:25:27] API Response structure: Array
+(
+    [0] => candidates
+    [1] => usageMetadata
+    [2] => modelVersion
+    [3] => responseId
+)
+
+[2025-06-13 13:25:27] Generated text length: 2357
+[2025-06-13 13:25:27] Content generated successfully, length: 2357
+[2025-06-13 13:25:27] Verifying content...
+[2025-06-13 13:25:27] Calling Gemini API with prompt length: 6206
+[2025-06-13 13:25:32] API Response HTTP Code: 200
+[2025-06-13 13:25:32] API Response structure: Array
+(
+    [0] => candidates
+    [1] => usageMetadata
+    [2] => modelVersion
+    [3] => responseId
+)
+
+[2025-06-13 13:25:32] Generated text length: 2325
+[2025-06-13 13:25:32] Content verified successfully, length: 2325
+[2025-06-13 13:25:32] Content generated and verified successfully
+[2025-06-13 13:25:32] Task 2 status updated to: completed
+[2025-06-13 13:28:23] Processing task item ID: 4
+[2025-06-13 13:28:23] Task item data: {"id":"4","0":"4","task_id":"3","1":"3","url":"https:\/\/nagomi.pl\/pl\/1822-zegary","2":"https:\/\/nagomi.pl\/pl\/1822-zegary","input_data":"{\"url\":\"https:\\\/\\\/nagomi.pl\\\/pl\\\/1822-zegary\",\"keywords\":\"japo\\u0144skie zegary na \\u015bcian\\u0119\\r\\ndekoracyjne zegary z Japonii\\r\\nr\\u0119cznie robione zegary orientalne\",\"headings\":\"\",\"characters\":\"2500\",\"lead\":\"TAK\",\"internal_linking\":\"\"}","3":"{\"url\":\"https:\\\/\\\/nagomi.pl\\\/pl\\\/1822-zegary\",\"keywords\":\"japo\\u0144skie zegary na \\u015bcian\\u0119\\r\\ndekoracyjne zegary z Japonii\\r\\nr\\u0119cznie robione zegary orientalne\",\"headings\":\"\",\"characters\":\"2500\",\"lead\":\"TAK\",\"internal_linking\":\"\"}","status":"processing","4":"processing","created_at":"2025-06-13 13:28:09","5":"2025-06-13 13:28:09","strictness_level":"0.5","6":"0.5","content_type_id":"1","7":"1"}
+[2025-06-13 13:28:23] Input data: {"url":"https:\/\/nagomi.pl\/pl\/1822-zegary","keywords":"japo\u0144skie zegary na \u015bcian\u0119\r\ndekoracyjne zegary z Japonii\r\nr\u0119cznie robione zegary orientalne","headings":"","characters":"2500","lead":"TAK","internal_linking":""}
+[2025-06-13 13:28:23] Replaced {url} with: https://nagomi.pl/pl/1822-zegary
+[2025-06-13 13:28:23] Replaced {keywords} with: japońskie zegary na ścianę
+dekoracyjne zegary z Japonii
+ręcznie robione zegary orientalne
+[2025-06-13 13:28:23] Replaced {headings} with: 
+[2025-06-13 13:28:23] Replaced {characters} with: 2500
+[2025-06-13 13:28:23] Replaced {lead} with: TAK
+[2025-06-13 13:28:23] Replaced {internal_linking} with: 
+[2025-06-13 13:28:23] Replaced {strictness_level} with: 0.5
+[2025-06-13 13:28:23] Final prompt length: 7858
+[2025-06-13 13:28:23] Calling Gemini API with prompt length: 7858
+[2025-06-13 13:28:28] API Response HTTP Code: 200
+[2025-06-13 13:28:28] API Response structure: Array
+(
+    [0] => candidates
+    [1] => usageMetadata
+    [2] => modelVersion
+    [3] => responseId
+)
+
+[2025-06-13 13:28:28] Generated text length: 2707
+[2025-06-13 13:28:28] Content generated successfully, length: 2707
+[2025-06-13 13:28:28] Verifying content...
+[2025-06-13 13:28:28] Calling Gemini API with prompt length: 6694
+[2025-06-13 13:28:33] API Response HTTP Code: 200
+[2025-06-13 13:28:33] API Response structure: Array
+(
+    [0] => candidates
+    [1] => usageMetadata
+    [2] => modelVersion
+    [3] => responseId
+)
+
+[2025-06-13 13:28:33] Generated text length: 2689
+[2025-06-13 13:28:33] Content verified successfully, length: 2689
+[2025-06-13 13:28:33] Content generated and verified successfully
+[2025-06-13 13:28:33] Task 3 status updated to: completed
+[2025-06-13 13:34:16] Processing task item ID: 5
+[2025-06-13 13:34:16] Task item data: {"id":"5","0":"5","task_id":"4","1":"4","url":"https:\/\/nagomi.pl\/pl\/1822-zegary","2":"https:\/\/nagomi.pl\/pl\/1822-zegary","input_data":"{\"url\":\"https:\\\/\\\/nagomi.pl\\\/pl\\\/1822-zegary\",\"keywords\":\"japo\\u0144skie zegary na \\u015bcian\\u0119\\r\\ndekoracyjne zegary z Japonii\\r\\nr\\u0119cznie robione zegary orientalne\",\"headings\":\"\",\"characters\":\"2500\",\"lead\":\"TAK\",\"internal_linking\":\"\"}","3":"{\"url\":\"https:\\\/\\\/nagomi.pl\\\/pl\\\/1822-zegary\",\"keywords\":\"japo\\u0144skie zegary na \\u015bcian\\u0119\\r\\ndekoracyjne zegary z Japonii\\r\\nr\\u0119cznie robione zegary orientalne\",\"headings\":\"\",\"characters\":\"2500\",\"lead\":\"TAK\",\"internal_linking\":\"\"}","status":"processing","4":"processing","created_at":"2025-06-13 13:33:55","5":"2025-06-13 13:33:55","strictness_level":"0.5","6":"0.5","content_type_id":"1","7":"1"}
+[2025-06-13 13:34:16] Input data: {"url":"https:\/\/nagomi.pl\/pl\/1822-zegary","keywords":"japo\u0144skie zegary na \u015bcian\u0119\r\ndekoracyjne zegary z Japonii\r\nr\u0119cznie robione zegary orientalne","headings":"","characters":"2500","lead":"TAK","internal_linking":""}
+[2025-06-13 13:34:16] Replaced {url} with: https://nagomi.pl/pl/1822-zegary
+[2025-06-13 13:34:16] Replaced {keywords} with: japońskie zegary na ścianę
+dekoracyjne zegary z Japonii
+ręcznie robione zegary orientalne
+[2025-06-13 13:34:16] Replaced {headings} with: 
+[2025-06-13 13:34:16] Replaced {characters} with: 2500
+[2025-06-13 13:34:16] Replaced {lead} with: TAK
+[2025-06-13 13:34:16] Replaced {internal_linking} with: 
+[2025-06-13 13:34:16] Replaced {strictness_level} with: 0.5
+[2025-06-13 13:34:16] Final prompt length: 7858
+[2025-06-13 13:34:16] Calling Gemini API with prompt length: 7858
+[2025-06-13 13:34:21] API Response HTTP Code: 200
+[2025-06-13 13:34:21] API Response structure: Array
+(
+    [0] => candidates
+    [1] => usageMetadata
+    [2] => modelVersion
+    [3] => responseId
+)
+
+[2025-06-13 13:34:21] Generated text length: 2987
+[2025-06-13 13:34:21] Content generated successfully, length: 2987
+[2025-06-13 13:34:21] Verifying content...
+[2025-06-13 13:34:21] Calling Gemini API with prompt length: 6974
+[2025-06-13 13:34:27] API Response HTTP Code: 200
+[2025-06-13 13:34:27] API Response structure: Array
+(
+    [0] => candidates
+    [1] => usageMetadata
+    [2] => modelVersion
+    [3] => responseId
+)
+
+[2025-06-13 13:34:27] Generated text length: 2947
+[2025-06-13 13:34:27] Content verified successfully, length: 2947
+[2025-06-13 13:34:27] Content generated and verified successfully
+[2025-06-13 13:34:27] Task 4 status updated to: processing
+[2025-06-13 13:41:45] Starting queue processor. Mode: WWW (Manual Trigger)
+[2025-06-13 13:41:45] API key configured. Processing one item.
+[2025-06-13 13:41:45] No items in queue, waiting...
+[2025-06-13 13:42:11] Starting queue processor. Mode: WWW (Manual Trigger)
+[2025-06-13 13:42:11] API key configured. Processing one item.
+[2025-06-13 13:42:11] Attempting to process queue item ID: 8 (Task Item ID: 6)
+[2025-06-13 13:42:11] Processing task item ID: 6
+[2025-06-13 13:42:11] Task item data for ID 6: {"id":"6","0":"6","task_id":"4","1":"4","url":"https:\/\/nagomi.pl\/pl\/1803-talerze","2":"https:\/\/nagomi.pl\/pl\/1803-talerze","input_data":"{\"url\":\"https:\\\/\\\/nagomi.pl\\\/pl\\\/1803-talerze\",\"keywords\":\"japo\\u0144skie talerze ceramiczne\\r\\ntalerze do sushi i sashimi\\r\\nr\\u0119cznie robione talerze z Japonii\",\"headings\":\"\",\"characters\":\"2500\",\"lead\":\"TAK\",\"internal_linking\":\"\"}","3":"{\"url\":\"https:\\\/\\\/nagomi.pl\\\/pl\\\/1803-talerze\",\"keywords\":\"japo\\u0144skie talerze ceramiczne\\r\\ntalerze do sushi i sashimi\\r\\nr\\u0119cznie robione talerze z Japonii\",\"headings\":\"\",\"characters\":\"2500\",\"lead\":\"TAK\",\"internal_linking\":\"\"}","status":"processing","4":"processing","created_at":"2025-06-13 13:33:55","5":"2025-06-13 13:33:55","strictness_level":"0.5","6":"0.5","content_type_id":"1","7":"1"}
+[2025-06-13 13:42:11] Input data for ID 6: {"url":"https:\/\/nagomi.pl\/pl\/1803-talerze","keywords":"japo\u0144skie talerze ceramiczne\r\ntalerze do sushi i sashimi\r\nr\u0119cznie robione talerze z Japonii","headings":"","characters":"2500","lead":"TAK","internal_linking":""}
+[2025-06-13 13:42:11] Final generate prompt length: 7851
+[2025-06-13 13:42:11] Calling Gemini API with prompt length: 7851
+[2025-06-13 13:42:16] API Response HTTP Code: 200
+[2025-06-13 13:42:16] API Response structure (top keys): Array
+(
+    [0] => candidates
+    [1] => usageMetadata
+    [2] => modelVersion
+    [3] => responseId
+)
+
+[2025-06-13 13:42:16] Generated text length: 2484
+[2025-06-13 13:42:16] Content generated successfully for ID 6, length: 2484
+[2025-06-13 13:42:16] ERROR processing queue item 8 (Task Item ID: 6): Missing replacement for placeholder: 'characters' in prompt template. Available keys: generated_text
+[2025-06-13 13:42:16] Queue item 8 marked as 'pending' with 1 attempts.
+[2025-06-13 13:42:16] Task ID: 4 status updated to: processing
+[2025-06-13 13:42:16] Transaction for queue item 8 committed.
+[2025-06-13 13:44:18] Starting queue processor. Mode: WWW (Manual Trigger)
+[2025-06-13 13:44:18] API key configured. Processing one item.
+[2025-06-13 13:44:18] Attempting to process queue item ID: 8 (Task Item ID: 6)
+[2025-06-13 13:44:18] Processing task item ID: 6
+[2025-06-13 13:44:18] Task item data for ID 6: {"id":"6","0":"6","task_id":"4","1":"4","url":"https:\/\/nagomi.pl\/pl\/1803-talerze","2":"https:\/\/nagomi.pl\/pl\/1803-talerze","input_data":"{\"url\":\"https:\\\/\\\/nagomi.pl\\\/pl\\\/1803-talerze\",\"keywords\":\"japo\\u0144skie talerze ceramiczne\\r\\ntalerze do sushi i sashimi\\r\\nr\\u0119cznie robione talerze z Japonii\",\"headings\":\"\",\"characters\":\"2500\",\"lead\":\"TAK\",\"internal_linking\":\"\"}","3":"{\"url\":\"https:\\\/\\\/nagomi.pl\\\/pl\\\/1803-talerze\",\"keywords\":\"japo\\u0144skie talerze ceramiczne\\r\\ntalerze do sushi i sashimi\\r\\nr\\u0119cznie robione talerze z Japonii\",\"headings\":\"\",\"characters\":\"2500\",\"lead\":\"TAK\",\"internal_linking\":\"\"}","status":"processing","4":"processing","created_at":"2025-06-13 13:33:55","5":"2025-06-13 13:33:55","strictness_level":"0.5","6":"0.5","content_type_id":"1","7":"1"}
+[2025-06-13 13:44:18] Input data for ID 6: {"url":"https:\/\/nagomi.pl\/pl\/1803-talerze","keywords":"japo\u0144skie talerze ceramiczne\r\ntalerze do sushi i sashimi\r\nr\u0119cznie robione talerze z Japonii","headings":"","characters":"2500","lead":"TAK","internal_linking":""}
+[2025-06-13 13:44:18] Final generate prompt length: 7851
+[2025-06-13 13:44:18] Calling Gemini API with prompt length: 7851
+[2025-06-13 13:44:24] API Response HTTP Code: 200
+[2025-06-13 13:44:24] API Response structure (top keys): Array
+(
+    [0] => candidates
+    [1] => usageMetadata
+    [2] => modelVersion
+    [3] => responseId
+)
+
+[2025-06-13 13:44:24] Generated text length: 2834
+[2025-06-13 13:44:24] Content generated successfully for ID 6, length: 2834
+[2025-06-13 13:44:24] ERROR processing queue item 8 (Task Item ID: 6): Missing replacement for placeholder: 'characters' in prompt template. Available keys: generated_text
+[2025-06-13 13:44:24] Queue item 8 marked as 'pending' with 1 attempts.
+[2025-06-13 13:44:24] Task ID: 4 status updated to: processing
+[2025-06-13 13:44:24] Transaction for queue item 8 committed.
+[2025-06-13 13:44:50] Starting queue processor. Mode: WWW (Manual Trigger)
+[2025-06-13 13:44:50] API key configured. Processing one item.
+[2025-06-13 13:44:50] Attempting to process queue item ID: 8 (Task Item ID: 6)
+[2025-06-13 13:44:50] Processing task item ID: 6
+[2025-06-13 13:44:50] Task item data for ID 6: {"id":"6","0":"6","task_id":"4","1":"4","url":"https:\/\/nagomi.pl\/pl\/1803-talerze","2":"https:\/\/nagomi.pl\/pl\/1803-talerze","input_data":"{\"url\":\"https:\\\/\\\/nagomi.pl\\\/pl\\\/1803-talerze\",\"keywords\":\"japo\\u0144skie talerze ceramiczne\\r\\ntalerze do sushi i sashimi\\r\\nr\\u0119cznie robione talerze z Japonii\",\"headings\":\"\",\"characters\":\"2500\",\"lead\":\"TAK\",\"internal_linking\":\"\"}","3":"{\"url\":\"https:\\\/\\\/nagomi.pl\\\/pl\\\/1803-talerze\",\"keywords\":\"japo\\u0144skie talerze ceramiczne\\r\\ntalerze do sushi i sashimi\\r\\nr\\u0119cznie robione talerze z Japonii\",\"headings\":\"\",\"characters\":\"2500\",\"lead\":\"TAK\",\"internal_linking\":\"\"}","status":"processing","4":"processing","created_at":"2025-06-13 13:33:55","5":"2025-06-13 13:33:55","strictness_level":"0.5","6":"0.5","content_type_id":"1","7":"1"}
+[2025-06-13 13:44:50] Input data for ID 6: {"url":"https:\/\/nagomi.pl\/pl\/1803-talerze","keywords":"japo\u0144skie talerze ceramiczne\r\ntalerze do sushi i sashimi\r\nr\u0119cznie robione talerze z Japonii","headings":"","characters":"2500","lead":"TAK","internal_linking":""}
+[2025-06-13 13:44:50] Final generate prompt length: 7851
+[2025-06-13 13:44:50] Calling Gemini API with prompt length: 7851
+[2025-06-13 13:44:55] API Response HTTP Code: 200
+[2025-06-13 13:44:55] API Response structure (top keys): Array
+(
+    [0] => candidates
+    [1] => usageMetadata
+    [2] => modelVersion
+    [3] => responseId
+)
+
+[2025-06-13 13:44:55] Generated text length: 2525
+[2025-06-13 13:44:55] Content generated successfully for ID 6, length: 2525
+[2025-06-13 13:44:55] Verifying content for ID 6...
+[2025-06-13 13:44:55] Calling Gemini API with prompt length: 6441
+[2025-06-13 13:45:00] API Response HTTP Code: 200
+[2025-06-13 13:45:00] API Response structure (top keys): Array
+(
+    [0] => candidates
+    [1] => usageMetadata
+    [2] => modelVersion
+    [3] => responseId
+)
+
+[2025-06-13 13:45:00] Generated text length: 2503
+[2025-06-13 13:45:00] Content verified successfully for ID 6, length: 2503
+[2025-06-13 13:45:00] Content generated and saved for ID 6
+[2025-06-13 13:45:00] Queue item 8 successfully processed and marked as completed.
+[2025-06-13 13:45:00] Task ID: 4 status updated to: completed
+[2025-06-13 13:45:00] Transaction for queue item 8 committed.
+[2025-06-13 13:46:05] Starting queue processor. Mode: WWW (Manual Trigger)
+[2025-06-13 13:46:05] API key configured. Processing one item.
+[2025-06-13 13:46:05] Attempting to process queue item ID: 9 (Task Item ID: 5)
+[2025-06-13 13:46:05] Processing task item ID: 5
+[2025-06-13 13:46:05] Task item data for ID 5: {"id":"5","0":"5","task_id":"4","1":"4","url":"https:\/\/nagomi.pl\/pl\/1822-zegary","2":"https:\/\/nagomi.pl\/pl\/1822-zegary","input_data":"{\"url\":\"https:\\\/\\\/nagomi.pl\\\/pl\\\/1822-zegary\",\"keywords\":\"japo\\u0144skie zegary na \\u015bcian\\u0119\\r\\ndekoracyjne zegary z Japonii\\r\\nr\\u0119cznie robione zegary orientalne\",\"headings\":\"\",\"characters\":\"2500\",\"lead\":\"TAK\",\"internal_linking\":\"\"}","3":"{\"url\":\"https:\\\/\\\/nagomi.pl\\\/pl\\\/1822-zegary\",\"keywords\":\"japo\\u0144skie zegary na \\u015bcian\\u0119\\r\\ndekoracyjne zegary z Japonii\\r\\nr\\u0119cznie robione zegary orientalne\",\"headings\":\"\",\"characters\":\"2500\",\"lead\":\"TAK\",\"internal_linking\":\"\"}","status":"processing","4":"processing","created_at":"2025-06-13 13:33:55","5":"2025-06-13 13:33:55","strictness_level":"0.5","6":"0.5","content_type_id":"1","7":"1"}
+[2025-06-13 13:46:05] Input data for ID 5: {"url":"https:\/\/nagomi.pl\/pl\/1822-zegary","keywords":"japo\u0144skie zegary na \u015bcian\u0119\r\ndekoracyjne zegary z Japonii\r\nr\u0119cznie robione zegary orientalne","headings":"","characters":"2500","lead":"TAK","internal_linking":""}
+[2025-06-13 13:46:05] Final generate prompt length: 7985
+[2025-06-13 13:46:05] Calling Gemini API with prompt length: 7985
+[2025-06-13 13:46:10] API Response HTTP Code: 200
+[2025-06-13 13:46:10] API Response structure (top keys): Array
+(
+    [0] => candidates
+    [1] => usageMetadata
+    [2] => modelVersion
+    [3] => responseId
+)
+
+[2025-06-13 13:46:10] Generated text length: 2730
+[2025-06-13 13:46:10] Content generated successfully for ID 5, length: 2730
+[2025-06-13 13:46:10] Verifying content for ID 5...
+[2025-06-13 13:46:10] Calling Gemini API with prompt length: 6646
+[2025-06-13 13:46:15] API Response HTTP Code: 200
+[2025-06-13 13:46:15] API Response structure (top keys): Array
+(
+    [0] => candidates
+    [1] => usageMetadata
+    [2] => modelVersion
+    [3] => responseId
+)
+
+[2025-06-13 13:46:15] Generated text length: 2698
+[2025-06-13 13:46:15] Content verified successfully for ID 5, length: 2698
+[2025-06-13 13:46:15] Content generated and saved for ID 5
+[2025-06-13 13:46:15] Queue item 9 successfully processed and marked as completed.
+[2025-06-13 13:46:15] Task ID: 4 status updated to: processing
+[2025-06-13 13:46:15] Transaction for queue item 9 committed.
+[2025-06-13 13:46:32] Starting queue processor. Mode: WWW (Manual Trigger)
+[2025-06-13 13:46:32] API key configured. Processing one item.
+[2025-06-13 13:46:32] No items in queue, waiting...
+[2025-06-13 13:46:36] Starting queue processor. Mode: WWW (Manual Trigger)
+[2025-06-13 13:46:36] API key configured. Processing one item.
+[2025-06-13 13:46:36] Attempting to process queue item ID: 9 (Task Item ID: 5)
+[2025-06-13 13:46:36] Processing task item ID: 5
+[2025-06-13 13:46:36] Task item data for ID 5: {"id":"5","0":"5","task_id":"4","1":"4","url":"https:\/\/nagomi.pl\/pl\/1822-zegary","2":"https:\/\/nagomi.pl\/pl\/1822-zegary","input_data":"{\"url\":\"https:\\\/\\\/nagomi.pl\\\/pl\\\/1822-zegary\",\"keywords\":\"japo\\u0144skie zegary na \\u015bcian\\u0119\\r\\ndekoracyjne zegary z Japonii\\r\\nr\\u0119cznie robione zegary orientalne\",\"headings\":\"\",\"characters\":\"2500\",\"lead\":\"TAK\",\"internal_linking\":\"\"}","3":"{\"url\":\"https:\\\/\\\/nagomi.pl\\\/pl\\\/1822-zegary\",\"keywords\":\"japo\\u0144skie zegary na \\u015bcian\\u0119\\r\\ndekoracyjne zegary z Japonii\\r\\nr\\u0119cznie robione zegary orientalne\",\"headings\":\"\",\"characters\":\"2500\",\"lead\":\"TAK\",\"internal_linking\":\"\"}","status":"processing","4":"processing","created_at":"2025-06-13 13:33:55","5":"2025-06-13 13:33:55","strictness_level":"0.5","6":"0.5","content_type_id":"1","7":"1"}
+[2025-06-13 13:46:36] Input data for ID 5: {"url":"https:\/\/nagomi.pl\/pl\/1822-zegary","keywords":"japo\u0144skie zegary na \u015bcian\u0119\r\ndekoracyjne zegary z Japonii\r\nr\u0119cznie robione zegary orientalne","headings":"","characters":"2500","lead":"TAK","internal_linking":""}
+[2025-06-13 13:46:36] Final generate prompt length: 7985
+[2025-06-13 13:46:36] Calling Gemini API with prompt length: 7985
+[2025-06-13 13:46:42] API Response HTTP Code: 200
+[2025-06-13 13:46:42] API Response structure (top keys): Array
+(
+    [0] => candidates
+    [1] => usageMetadata
+    [2] => modelVersion
+    [3] => responseId
+)
+
+[2025-06-13 13:46:42] Generated text length: 3187
+[2025-06-13 13:46:42] Content generated successfully for ID 5, length: 3187
+[2025-06-13 13:46:42] Verifying content for ID 5...
+[2025-06-13 13:46:42] Calling Gemini API with prompt length: 7103
+[2025-06-13 13:46:48] API Response HTTP Code: 200
+[2025-06-13 13:46:48] API Response structure (top keys): Array
+(
+    [0] => candidates
+    [1] => usageMetadata
+    [2] => modelVersion
+    [3] => responseId
+)
+
+[2025-06-13 13:46:48] Generated text length: 3155
+[2025-06-13 13:46:48] Content verified successfully for ID 5, length: 3155
+[2025-06-13 13:46:48] Content generated and saved for ID 5
+[2025-06-13 13:46:48] Queue item 9 successfully processed and marked as completed.
+[2025-06-13 13:46:48] Task ID: 4 status updated to: partial_failure
+[2025-06-13 13:46:48] Transaction for queue item 9 committed.
+[2025-06-13 13:47:03] Starting queue processor. Mode: WWW (Manual Trigger)
+[2025-06-13 13:47:03] API key configured. Processing one item.
+[2025-06-13 13:47:03] Attempting to process queue item ID: 10 (Task Item ID: 6)
+[2025-06-13 13:47:03] Processing task item ID: 6
+[2025-06-13 13:47:03] Task item data for ID 6: {"id":"6","0":"6","task_id":"4","1":"4","url":"https:\/\/nagomi.pl\/pl\/1803-talerze","2":"https:\/\/nagomi.pl\/pl\/1803-talerze","input_data":"{\"url\":\"https:\\\/\\\/nagomi.pl\\\/pl\\\/1803-talerze\",\"keywords\":\"japo\\u0144skie talerze ceramiczne\\r\\ntalerze do sushi i sashimi\\r\\nr\\u0119cznie robione talerze z Japonii\",\"headings\":\"\",\"characters\":\"2500\",\"lead\":\"TAK\",\"internal_linking\":\"\"}","3":"{\"url\":\"https:\\\/\\\/nagomi.pl\\\/pl\\\/1803-talerze\",\"keywords\":\"japo\\u0144skie talerze ceramiczne\\r\\ntalerze do sushi i sashimi\\r\\nr\\u0119cznie robione talerze z Japonii\",\"headings\":\"\",\"characters\":\"2500\",\"lead\":\"TAK\",\"internal_linking\":\"\"}","status":"processing","4":"processing","created_at":"2025-06-13 13:33:55","5":"2025-06-13 13:33:55","strictness_level":"0.5","6":"0.5","content_type_id":"1","7":"1"}
+[2025-06-13 13:47:03] Input data for ID 6: {"url":"https:\/\/nagomi.pl\/pl\/1803-talerze","keywords":"japo\u0144skie talerze ceramiczne\r\ntalerze do sushi i sashimi\r\nr\u0119cznie robione talerze z Japonii","headings":"","characters":"2500","lead":"TAK","internal_linking":""}
+[2025-06-13 13:47:03] Final generate prompt length: 7978
+[2025-06-13 13:47:03] Calling Gemini API with prompt length: 7978
+[2025-06-13 13:47:08] API Response HTTP Code: 200
+[2025-06-13 13:47:08] API Response structure (top keys): Array
+(
+    [0] => candidates
+    [1] => usageMetadata
+    [2] => modelVersion
+    [3] => responseId
+)
+
+[2025-06-13 13:47:08] Generated text length: 2933
+[2025-06-13 13:47:08] Content generated successfully for ID 6, length: 2933
+[2025-06-13 13:47:08] Verifying content for ID 6...
+[2025-06-13 13:47:08] Calling Gemini API with prompt length: 6849
+[2025-06-13 13:47:14] API Response HTTP Code: 200
+[2025-06-13 13:47:14] API Response structure (top keys): Array
+(
+    [0] => candidates
+    [1] => usageMetadata
+    [2] => modelVersion
+    [3] => responseId
+)
+
+[2025-06-13 13:47:14] Generated text length: 2903
+[2025-06-13 13:47:14] Content verified successfully for ID 6, length: 2903
+[2025-06-13 13:47:14] Content generated and saved for ID 6
+[2025-06-13 13:47:14] Queue item 10 successfully processed and marked as completed.
+[2025-06-13 13:47:14] Task ID: 4 status updated to: processing
+[2025-06-13 13:47:14] Transaction for queue item 10 committed.
+[2025-06-13 13:49:42] Starting queue processor. Mode: WWW (Manual Trigger)
+[2025-06-13 13:49:42] API key configured. Processing one item.
+[2025-06-13 13:49:42] No items in queue, waiting...
+[2025-06-13 13:51:19] Starting queue processor. Mode: WWW (Manual Trigger)
+[2025-06-13 13:51:19] API key configured. Processing one item.
+[2025-06-13 13:51:19] No items in queue, waiting...
+[2025-06-13 13:52:29] Starting queue processor. Mode: WWW (Manual Trigger)
+[2025-06-13 13:52:29] API key configured. Processing one item.
+[2025-06-13 13:52:29] Attempting to process queue item ID: 9 (Task Item ID: 5)
+[2025-06-13 13:52:29] Processing task item ID: 5
+[2025-06-13 13:52:29] Task item data for ID 5: {"id":"5","0":"5","task_id":"4","1":"4","url":"https:\/\/nagomi.pl\/pl\/1822-zegary","2":"https:\/\/nagomi.pl\/pl\/1822-zegary","input_data":"{\"url\":\"https:\\\/\\\/nagomi.pl\\\/pl\\\/1822-zegary\",\"keywords\":\"japo\\u0144skie zegary na \\u015bcian\\u0119\\r\\ndekoracyjne zegary z Japonii\\r\\nr\\u0119cznie robione zegary orientalne\",\"headings\":\"\",\"characters\":\"2500\",\"lead\":\"TAK\",\"internal_linking\":\"\"}","3":"{\"url\":\"https:\\\/\\\/nagomi.pl\\\/pl\\\/1822-zegary\",\"keywords\":\"japo\\u0144skie zegary na \\u015bcian\\u0119\\r\\ndekoracyjne zegary z Japonii\\r\\nr\\u0119cznie robione zegary orientalne\",\"headings\":\"\",\"characters\":\"2500\",\"lead\":\"TAK\",\"internal_linking\":\"\"}","status":"processing","4":"processing","created_at":"2025-06-13 13:33:55","5":"2025-06-13 13:33:55","strictness_level":"0.5","6":"0.5","content_type_id":"1","7":"1"}
+[2025-06-13 13:52:29] Input data for ID 5: {"url":"https:\/\/nagomi.pl\/pl\/1822-zegary","keywords":"japo\u0144skie zegary na \u015bcian\u0119\r\ndekoracyjne zegary z Japonii\r\nr\u0119cznie robione zegary orientalne","headings":"","characters":"2500","lead":"TAK","internal_linking":""}
+[2025-06-13 13:52:29] Final generate prompt length: 7985
+[2025-06-13 13:52:29] Calling Gemini API with prompt length: 7985
+[2025-06-13 13:52:35] API Response HTTP Code: 200
+[2025-06-13 13:52:35] API Response structure (top keys): Array
+(
+    [0] => candidates
+    [1] => usageMetadata
+    [2] => modelVersion
+    [3] => responseId
+)
+
+[2025-06-13 13:52:35] Generated text length: 3094
+[2025-06-13 13:52:35] Content generated successfully for ID 5, length: 3094
+[2025-06-13 13:52:35] Verifying content for ID 5...
+[2025-06-13 13:52:35] Calling Gemini API with prompt length: 7010
+[2025-06-13 13:52:40] API Response HTTP Code: 200
+[2025-06-13 13:52:40] API Response structure (top keys): Array
+(
+    [0] => candidates
+    [1] => usageMetadata
+    [2] => modelVersion
+    [3] => responseId
+)
+
+[2025-06-13 13:52:40] Generated text length: 3066
+[2025-06-13 13:52:40] Content verified successfully for ID 5, length: 3066
+[2025-06-13 13:52:40] Content generated and saved for ID 5
+[2025-06-13 13:52:40] Queue item 9 successfully processed and marked as completed.
+[2025-06-13 13:52:40] Task ID: 4 status updated to: partial_failure
+[2025-06-13 13:52:40] Transaction for queue item 9 committed.
+[2025-06-13 13:52:51] Starting queue processor. Mode: WWW (Manual Trigger)
+[2025-06-13 13:52:51] API key configured. Processing one item.
+[2025-06-13 13:52:51] Attempting to process queue item ID: 10 (Task Item ID: 6)
+[2025-06-13 13:52:51] Processing task item ID: 6
+[2025-06-13 13:52:51] Task item data for ID 6: {"id":"6","0":"6","task_id":"4","1":"4","url":"https:\/\/nagomi.pl\/pl\/1803-talerze","2":"https:\/\/nagomi.pl\/pl\/1803-talerze","input_data":"{\"url\":\"https:\\\/\\\/nagomi.pl\\\/pl\\\/1803-talerze\",\"keywords\":\"japo\\u0144skie talerze ceramiczne\\r\\ntalerze do sushi i sashimi\\r\\nr\\u0119cznie robione talerze z Japonii\",\"headings\":\"\",\"characters\":\"2500\",\"lead\":\"TAK\",\"internal_linking\":\"\"}","3":"{\"url\":\"https:\\\/\\\/nagomi.pl\\\/pl\\\/1803-talerze\",\"keywords\":\"japo\\u0144skie talerze ceramiczne\\r\\ntalerze do sushi i sashimi\\r\\nr\\u0119cznie robione talerze z Japonii\",\"headings\":\"\",\"characters\":\"2500\",\"lead\":\"TAK\",\"internal_linking\":\"\"}","status":"processing","4":"processing","created_at":"2025-06-13 13:33:55","5":"2025-06-13 13:33:55","strictness_level":"0.5","6":"0.5","content_type_id":"1","7":"1"}
+[2025-06-13 13:52:51] Input data for ID 6: {"url":"https:\/\/nagomi.pl\/pl\/1803-talerze","keywords":"japo\u0144skie talerze ceramiczne\r\ntalerze do sushi i sashimi\r\nr\u0119cznie robione talerze z Japonii","headings":"","characters":"2500","lead":"TAK","internal_linking":""}
+[2025-06-13 13:52:51] Final generate prompt length: 7978
+[2025-06-13 13:52:51] Calling Gemini API with prompt length: 7978
+[2025-06-13 13:52:56] API Response HTTP Code: 200
+[2025-06-13 13:52:56] API Response structure (top keys): Array
+(
+    [0] => candidates
+    [1] => usageMetadata
+    [2] => modelVersion
+    [3] => responseId
+)
+
+[2025-06-13 13:52:56] Generated text length: 2586
+[2025-06-13 13:52:56] Content generated successfully for ID 6, length: 2586
+[2025-06-13 13:52:56] Verifying content for ID 6...
+[2025-06-13 13:52:56] Calling Gemini API with prompt length: 6502
+[2025-06-13 13:53:01] API Response HTTP Code: 200
+[2025-06-13 13:53:01] API Response structure (top keys): Array
+(
+    [0] => candidates
+    [1] => usageMetadata
+    [2] => modelVersion
+    [3] => responseId
+)
+
+[2025-06-13 13:53:01] Generated text length: 2556
+[2025-06-13 13:53:01] Content verified successfully for ID 6, length: 2556
+[2025-06-13 13:53:01] Content generated and saved for ID 6
+[2025-06-13 13:53:01] Queue item 10 successfully processed and marked as completed.
+[2025-06-13 13:53:01] Task ID: 4 status updated to: completed
+[2025-06-13 13:53:01] Transaction for queue item 10 committed.
+[2025-06-13 13:53:10] Starting queue processor. Mode: WWW (Manual Trigger)
+[2025-06-13 13:53:10] API key configured. Processing one item.
+[2025-06-13 13:53:10] Attempting to process queue item ID: 11 (Task Item ID: 7)
+[2025-06-13 13:53:10] Processing task item ID: 7
+[2025-06-13 13:53:10] Task item data for ID 7: {"id":"7","0":"7","task_id":"5","1":"5","url":"https:\/\/nagomi.pl\/pl\/1822-zegary","2":"https:\/\/nagomi.pl\/pl\/1822-zegary","input_data":"{\"url\":\"https:\\\/\\\/nagomi.pl\\\/pl\\\/1822-zegary\",\"keywords\":\"japo\\u0144skie zegary na \\u015bcian\\u0119\\r\\ndekoracyjne zegary z Japonii\\r\\nr\\u0119cznie robione zegary orientalne\",\"headings\":\"\",\"characters\":\"2500\",\"lead\":\"TAK\",\"internal_linking\":\"\"}","3":"{\"url\":\"https:\\\/\\\/nagomi.pl\\\/pl\\\/1822-zegary\",\"keywords\":\"japo\\u0144skie zegary na \\u015bcian\\u0119\\r\\ndekoracyjne zegary z Japonii\\r\\nr\\u0119cznie robione zegary orientalne\",\"headings\":\"\",\"characters\":\"2500\",\"lead\":\"TAK\",\"internal_linking\":\"\"}","status":"processing","4":"processing","created_at":"2025-06-13 13:51:56","5":"2025-06-13 13:51:56","strictness_level":"0.6","6":"0.6","content_type_id":"1","7":"1"}
+[2025-06-13 13:53:10] Input data for ID 7: {"url":"https:\/\/nagomi.pl\/pl\/1822-zegary","keywords":"japo\u0144skie zegary na \u015bcian\u0119\r\ndekoracyjne zegary z Japonii\r\nr\u0119cznie robione zegary orientalne","headings":"","characters":"2500","lead":"TAK","internal_linking":""}
+[2025-06-13 13:53:10] Final generate prompt length: 7985
+[2025-06-13 13:53:10] Calling Gemini API with prompt length: 7985
+[2025-06-13 13:53:15] API Response HTTP Code: 200
+[2025-06-13 13:53:15] API Response structure (top keys): Array
+(
+    [0] => candidates
+    [1] => usageMetadata
+    [2] => modelVersion
+    [3] => responseId
+)
+
+[2025-06-13 13:53:15] Generated text length: 2886
+[2025-06-13 13:53:15] Content generated successfully for ID 7, length: 2886
+[2025-06-13 13:53:15] Verifying content for ID 7...
+[2025-06-13 13:53:15] Calling Gemini API with prompt length: 6802
+[2025-06-13 13:53:21] API Response HTTP Code: 200
+[2025-06-13 13:53:21] API Response structure (top keys): Array
+(
+    [0] => candidates
+    [1] => usageMetadata
+    [2] => modelVersion
+    [3] => responseId
+)
+
+[2025-06-13 13:53:21] Generated text length: 2859
+[2025-06-13 13:53:21] Content verified successfully for ID 7, length: 2859
+[2025-06-13 13:53:21] Content generated and saved for ID 7
+[2025-06-13 13:53:21] Queue item 11 successfully processed and marked as completed.
+[2025-06-13 13:53:21] Task ID: 5 status updated to: completed
+[2025-06-13 13:53:21] Transaction for queue item 11 committed.
+[2025-06-13 13:55:13] Starting queue processor. Mode: WWW (Manual Trigger)
+[2025-06-13 13:55:13] API key configured. Processing one item.
+[2025-06-13 13:55:13] No items in queue, waiting...
+[2025-06-13 13:55:25] Starting queue processor. Mode: WWW (Manual Trigger)
+[2025-06-13 13:55:25] API key configured. Processing one item.
+[2025-06-13 13:55:25] No items in queue, waiting...
+[2025-06-13 14:03:50] Starting queue processor. Mode: WWW (Manual Trigger)
+[2025-06-13 14:03:50] API key configured. Processing delay set to: 1 minutes.
+[2025-06-13 14:03:50] Processing one item.
+[2025-06-13 14:03:50] Attempting to process queue item ID: 12 (Task Item ID: 8)
+[2025-06-13 14:03:50] Processing task item ID: 8
+[2025-06-13 14:03:50] Task item data for ID 8: {"id":"8","0":"8","task_id":"6","1":"6","url":"https:\/\/nagomi.pl\/pl\/1822-zegary","2":"https:\/\/nagomi.pl\/pl\/1822-zegary","input_data":"{\"url\":\"https:\\\/\\\/nagomi.pl\\\/pl\\\/1822-zegary\",\"keywords\":\"japo\\u0144skie zegary na \\u015bcian\\u0119\\r\\ndekoracyjne zegary z Japonii\\r\\nr\\u0119cznie robione zegary orientalne\",\"headings\":\"\",\"characters\":\"3500\",\"lead\":\"TAK\",\"internal_linking\":\"\"}","3":"{\"url\":\"https:\\\/\\\/nagomi.pl\\\/pl\\\/1822-zegary\",\"keywords\":\"japo\\u0144skie zegary na \\u015bcian\\u0119\\r\\ndekoracyjne zegary z Japonii\\r\\nr\\u0119cznie robione zegary orientalne\",\"headings\":\"\",\"characters\":\"3500\",\"lead\":\"TAK\",\"internal_linking\":\"\"}","status":"processing","4":"processing","created_at":"2025-06-13 13:54:47","5":"2025-06-13 13:54:47","strictness_level":"0.8","6":"0.8","content_type_id":"1","7":"1"}
+[2025-06-13 14:03:50] Input data for ID 8: {"url":"https:\/\/nagomi.pl\/pl\/1822-zegary","keywords":"japo\u0144skie zegary na \u015bcian\u0119\r\ndekoracyjne zegary z Japonii\r\nr\u0119cznie robione zegary orientalne","headings":"","characters":"3500","lead":"TAK","internal_linking":""}
+[2025-06-13 14:03:50] Final generate prompt length: 7985
+[2025-06-13 14:03:50] Calling Gemini API with prompt length: 7985
+[2025-06-13 14:03:56] API Response HTTP Code: 200
+[2025-06-13 14:03:56] API Response structure (top keys): Array
+(
+    [0] => candidates
+    [1] => usageMetadata
+    [2] => modelVersion
+    [3] => responseId
+)
+
+[2025-06-13 14:03:56] Generated text length: 2796
+[2025-06-13 14:03:56] Content generated successfully for ID 8, length: 2796
+[2025-06-13 14:03:56] Verifying content for ID 8...
+[2025-06-13 14:03:56] Calling Gemini API with prompt length: 6712
+[2025-06-13 14:04:01] API Response HTTP Code: 200
+[2025-06-13 14:04:01] API Response structure (top keys): Array
+(
+    [0] => candidates
+    [1] => usageMetadata
+    [2] => modelVersion
+    [3] => responseId
+)
+
+[2025-06-13 14:04:01] Generated text length: 2772
+[2025-06-13 14:04:01] Content verified successfully for ID 8, length: 2772
+[2025-06-13 14:04:01] Content generated and saved for ID 8
+[2025-06-13 14:04:01] Queue item 12 successfully processed and marked as completed.
+[2025-06-13 14:04:01] Task ID: 6 status updated to: completed
+[2025-06-13 14:04:01] Transaction for queue item 12 committed.
+[2025-06-13 14:11:40] Starting queue processor. Mode: WWW (Manual Trigger)
+[2025-06-13 14:11:40] API key configured. Processing delay set to: 1 minutes.
+[2025-06-13 14:11:40] Processing one item.
+[2025-06-13 14:11:40] No ready items in queue (either empty or not yet delayed), waiting...
