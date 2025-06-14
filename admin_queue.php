@@ -1,110 +1,86 @@
 <?php
 require_once 'auth_check.php';
+requireAdmin();
 
 $pdo = getDbConnection();
 
 $success = '';
 $error = '';
 
-// Obsługa wymuszenia generowania
-if ($_POST && isset($_POST['action']) && $_POST['action'] === 'force_generate') {
-    $queue_id = intval($_POST['queue_id']);
+// Obsługa akcji administracyjnych
+if ($_POST) {
+    $action = $_POST['action'] ?? '';
     
-    // Sprawdź czy element kolejki należy do użytkownika
-    $stmt = $pdo->prepare("
-        SELECT tq.id 
-        FROM task_queue tq
-        JOIN task_items ti ON tq.task_item_id = ti.id
-        JOIN tasks t ON ti.task_id = t.id
-        JOIN projects p ON t.project_id = p.id
-        WHERE tq.id = ? AND p.user_id = ?
-    ");
-    $stmt->execute([$queue_id, $_SESSION['user_id']]);
-    
-    if ($stmt->fetch()) {
-        try {
-            // Ustaw wysoki priorytet i zresetuj status
-            $stmt = $pdo->prepare("UPDATE task_queue SET priority = 100, status = 'pending', attempts = 0, error_message = NULL WHERE id = ?");
-            $stmt->execute([$queue_id]);
+    switch ($action) {
+        case 'clear_completed':
+            try {
+                $stmt = $pdo->prepare("DELETE FROM task_queue WHERE status = 'completed'");
+                $stmt->execute();
+                $success = 'Ukończone zadania zostały usunięte z kolejki.';
+            } catch(Exception $e) {
+                $error = 'Błąd usuwania zadań: ' . $e->getMessage();
+            }
+            break;
             
-            $success = 'Zadanie zostało przesłane na górę kolejki i czeka na wygenerowanie.';
+        case 'clear_failed':
+            try {
+                $stmt = $pdo->prepare("DELETE FROM task_queue WHERE status = 'failed'");
+                $stmt->execute();
+                $success = 'Nieudane zadania zostały usunięte z kolejki.';
+            } catch(Exception $e) {
+                $error = 'Błąd usuwania zadań: ' . $e->getMessage();
+            }
+            break;
             
-        } catch(Exception $e) {
-            $error = 'Błąd aktualizacji kolejki: ' . $e->getMessage();
-        }
-    } else {
-        $error = 'Nieprawidłowe zadanie.';
+        case 'retry_failed':
+            try {
+                $stmt = $pdo->prepare("UPDATE task_queue SET status = 'pending', attempts = 0, error_message = NULL WHERE status = 'failed'");
+                $stmt->execute();
+                $success = 'Nieudane zadania zostały ponownie dodane do kolejki.';
+            } catch(Exception $e) {
+                $error = 'Błąd ponownego dodawania zadań: ' . $e->getMessage();
+            }
+            break;
+            
+        case 'clear_all':
+            try {
+                $stmt = $pdo->prepare("DELETE FROM task_queue");
+                $stmt->execute();
+                $success = 'Cała kolejka została wyczyszczona.';
+            } catch(Exception $e) {
+                $error = 'Błąd czyszczenia kolejki: ' . $e->getMessage();
+            }
+            break;
     }
 }
-
-// Obsługa usuwania z kolejki
-if ($_POST && isset($_POST['action']) && $_POST['action'] === 'remove_from_queue') {
-    $queue_id = intval($_POST['queue_id']);
-    
-    // Sprawdź czy element kolejki należy do użytkownika
-    $stmt = $pdo->prepare("
-        SELECT tq.task_item_id 
-        FROM task_queue tq
-        JOIN task_items ti ON tq.task_item_id = ti.id
-        JOIN tasks t ON ti.task_id = t.id
-        JOIN projects p ON t.project_id = p.id
-        WHERE tq.id = ? AND p.user_id = ?
-    ");
-    $stmt->execute([$queue_id, $_SESSION['user_id']]);
-    $result = $stmt->fetch();
-    
-    if ($result) {
-        try {
-            // Usuń z kolejki
-            $stmt = $pdo->prepare("DELETE FROM task_queue WHERE id = ?");
-            $stmt->execute([$queue_id]);
-            
-            // Ustaw status elementu zadania na failed
-            $stmt = $pdo->prepare("UPDATE task_items SET status = 'failed' WHERE id = ?");
-            $stmt->execute([$result['task_item_id']]);
-            
-            $success = 'Element został usunięty z kolejki.';
-            
-        } catch(Exception $e) {
-            $error = 'Błąd usuwania z kolejki: ' . $e->getMessage();
-        }
-    } else {
-        $error = 'Nieprawidłowe zadanie.';
-    }
-}
-
-// Pobierz elementy kolejki dla użytkownika
-$stmt = $pdo->prepare("
-    SELECT tq.*, ti.url, t.name as task_name, p.name as project_name
-    FROM task_queue tq
-    JOIN task_items ti ON tq.task_item_id = ti.id
-    JOIN tasks t ON ti.task_id = t.id
-    JOIN projects p ON t.project_id = p.id
-    WHERE p.user_id = ?
-    ORDER BY tq.priority DESC, tq.created_at ASC
-");
-$stmt->execute([$_SESSION['user_id']]);
-$queue_items = $stmt->fetchAll();
 
 // Pobierz statystyki kolejki
-$stmt = $pdo->prepare("
+$stmt = $pdo->query("
     SELECT 
-        tq.status,
+        status,
         COUNT(*) as count
-    FROM task_queue tq
-    JOIN task_items ti ON tq.task_item_id = ti.id
-    JOIN tasks t ON ti.task_id = t.id
-    JOIN projects p ON t.project_id = p.id
-    WHERE p.user_id = ?
-    GROUP BY tq.status
+    FROM task_queue 
+    GROUP BY status
 ");
-$stmt->execute([$_SESSION['user_id']]);
 $queue_stats = $stmt->fetchAll();
 
 $stats_by_status = [];
 foreach ($queue_stats as $stat) {
     $stats_by_status[$stat['status']] = $stat['count'];
 }
+
+// Pobierz elementy kolejki z dodatkowymi informacjami
+$stmt = $pdo->query("
+    SELECT tq.*, ti.url, t.name as task_name, p.name as project_name, u.email as user_email
+    FROM task_queue tq
+    JOIN task_items ti ON tq.task_item_id = ti.id
+    JOIN tasks t ON ti.task_id = t.id
+    JOIN projects p ON t.project_id = p.id
+    JOIN users u ON p.user_id = u.id
+    ORDER BY tq.priority DESC, tq.created_at ASC
+    LIMIT 100
+");
+$queue_items = $stmt->fetchAll();
 ?>
 
 <!DOCTYPE html>
@@ -112,7 +88,7 @@ foreach ($queue_stats as $stat) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kolejka zadań - Generator treści SEO</title>
+    <title>Kolejka zadań (Admin) - Generator treści SEO</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <meta http-equiv="refresh" content="30">
@@ -126,14 +102,12 @@ foreach ($queue_stats as $stat) {
             
             <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
                 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                    <h1 class="h2">Kolejka zadań</h1>
+                    <h1 class="h2">Kolejka zadań (Admin)</h1>
                     <div>
                         <small class="text-muted">Automatyczne odświeżanie co 30 sekund</small>
-                        <?php if (isAdmin()): ?>
-                            <a href="process_queue.php" target="_blank" class="btn btn-sm btn-outline-info ms-2">
-                                <i class="fas fa-flask"></i> Test procesora
-                            </a>
-                        <?php endif; ?>
+                        <a href="process_queue.php" target="_blank" class="btn btn-sm btn-outline-info ms-2">
+                            <i class="fas fa-flask"></i> Test procesora
+                        </a>
                     </div>
                 </div>
                 
@@ -150,12 +124,6 @@ foreach ($queue_stats as $stat) {
                         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                     </div>
                 <?php endif; ?>
-                
-                <!-- Informacja o kolejce -->
-                <div class="alert alert-info">
-                    <h6><i class="fas fa-info-circle"></i> Jak działa kolejka?</h6>
-                    <p class="mb-0">Zadania są przetwarzane jedno po drugim w kolejności priorytetu. Każdy tekst przechodzi przez dwa etapy: generowanie i weryfikację. Proces może trwać kilka minut na jeden tekst.</p>
-                </div>
                 
                 <!-- Statystyki kolejki -->
                 <div class="row mb-4">
@@ -193,6 +161,48 @@ foreach ($queue_stats as $stat) {
                     </div>
                 </div>
                 
+                <!-- Akcje administracyjne -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Akcje administracyjne</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="btn-group" role="group">
+                            <form method="POST" style="display: inline;">
+                                <input type="hidden" name="action" value="clear_completed">
+                                <button type="submit" class="btn btn-outline-success" 
+                                        onclick="return confirm('Czy na pewno chcesz usunąć wszystkie ukończone zadania?')">
+                                    <i class="fas fa-check"></i> Usuń ukończone
+                                </button>
+                            </form>
+                            
+                            <form method="POST" style="display: inline;">
+                                <input type="hidden" name="action" value="retry_failed">
+                                <button type="submit" class="btn btn-outline-warning" 
+                                        onclick="return confirm('Czy na pewno chcesz ponowić wszystkie nieudane zadania?')">
+                                    <i class="fas fa-redo"></i> Ponów nieudane
+                                </button>
+                            </form>
+                            
+                            <form method="POST" style="display: inline;">
+                                <input type="hidden" name="action" value="clear_failed">
+                                <button type="submit" class="btn btn-outline-danger" 
+                                        onclick="return confirm('Czy na pewno chcesz usunąć wszystkie nieudane zadania?')">
+                                    <i class="fas fa-times"></i> Usuń nieudane
+                                </button>
+                            </form>
+                            
+                            <form method="POST" style="display: inline;">
+                                <input type="hidden" name="action" value="clear_all">
+                                <button type="submit" class="btn btn-danger" 
+                                        onclick="return confirm('UWAGA: To usunie WSZYSTKIE zadania z kolejki! Czy na pewno?')">
+                                    <i class="fas fa-trash"></i> Wyczyść wszystko
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                
                 <?php if (empty($queue_items)): ?>
                     <div class="text-center py-5">
                         <i class="fas fa-clock fa-3x text-muted mb-3"></i>
@@ -201,31 +211,37 @@ foreach ($queue_stats as $stat) {
                     </div>
                 <?php else: ?>
                     <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">Elementy kolejki (ostatnie 100)</h5>
+                        </div>
                         <div class="card-body">
                             <div class="table-responsive">
-                                <table class="table table-striped">
+                                <table class="table table-striped table-sm">
                                     <thead>
                                         <tr>
+                                            <th>ID</th>
+                                            <th>Użytkownik</th>
                                             <th>Projekt</th>
                                             <th>Zadanie</th>
                                             <th>URL</th>
                                             <th>Status</th>
                                             <th>Priorytet</th>
                                             <th>Próby</th>
-                                            <th>Dodano do kolejki</th>
-                                            <th>Akcje</th>
+                                            <th>Dodano</th>
+                                            <th>Przetworzono</th>
+                                            <th>Błąd</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <?php foreach ($queue_items as $item): ?>
                                             <tr>
+                                                <td><?= $item['id'] ?></td>
+                                                <td><?= htmlspecialchars($item['user_email']) ?></td>
                                                 <td><?= htmlspecialchars($item['project_name']) ?></td>
                                                 <td><?= htmlspecialchars($item['task_name']) ?></td>
                                                 <td>
-                                                    <div style="max-width: 200px; word-break: break-all;">
-                                                        <a href="<?= htmlspecialchars($item['url']) ?>" target="_blank">
-                                                            <?= htmlspecialchars($item['url']) ?>
-                                                        </a>
+                                                    <div style="max-width: 150px; word-break: break-all; font-size: 0.8em;">
+                                                        <?= htmlspecialchars($item['url']) ?>
                                                     </div>
                                                 </td>
                                                 <td>
@@ -248,53 +264,31 @@ foreach ($queue_stats as $stat) {
                                                     </span>
                                                 </td>
                                                 <td>
-                                                    <span class="badge <?= $item['priority'] >= 100 ? 'bg-danger' : 'bg-secondary' ?>">
-                                                        <?= $item['priority'] ?>
-                                                        <?php if ($item['priority'] >= 100): ?>
-                                                            <i class="fas fa-bolt" title="Wysoki priorytet"></i>
-                                                        <?php endif; ?>
-                                                    </span>
+                                                    <span class="badge bg-secondary"><?= $item['priority'] ?></span>
                                                 </td>
                                                 <td>
                                                     <?= $item['attempts'] ?> / <?= $item['max_attempts'] ?>
-                                                    <?php if ($item['attempts'] >= $item['max_attempts'] && $item['status'] === 'failed'): ?>
-                                                        <i class="fas fa-exclamation-triangle text-danger" title="Maksymalna liczba prób osiągnięta"></i>
+                                                </td>
+                                                <td>
+                                                    <small><?= date('d.m H:i', strtotime($item['created_at'])) ?></small>
+                                                </td>
+                                                <td>
+                                                    <?php if ($item['processed_at']): ?>
+                                                        <small><?= date('d.m H:i', strtotime($item['processed_at'])) ?></small>
+                                                    <?php else: ?>
+                                                        <span class="text-muted">-</span>
                                                     <?php endif; ?>
                                                 </td>
-                                                <td><?= date('d.m.Y H:i:s', strtotime($item['created_at'])) ?></td>
                                                 <td>
-                                                    <div class="btn-group">
-                                                        <?php if ($item['status'] === 'pending' || $item['status'] === 'failed'): ?>
-                                                            <form method="POST" style="display: inline;">
-                                                                <input type="hidden" name="action" value="force_generate">
-                                                                <input type="hidden" name="queue_id" value="<?= $item['id'] ?>">
-                                                                <button type="submit" class="btn btn-sm btn-outline-primary" 
-                                                                        title="Prześlij na górę kolejki">
-                                                                    <i class="fas fa-bolt"></i>
-                                                                </button>
-                                                            </form>
-                                                        <?php endif; ?>
-                                                        
-                                                        <?php if ($item['status'] !== 'completed'): ?>
-                                                            <form method="POST" style="display: inline;">
-                                                                <input type="hidden" name="action" value="remove_from_queue">
-                                                                <input type="hidden" name="queue_id" value="<?= $item['id'] ?>">
-                                                                <button type="submit" class="btn btn-sm btn-outline-danger" 
-                                                                        title="Usuń z kolejki"
-                                                                        onclick="return confirm('Czy na pewno chcesz usunąć to zadanie z kolejki?')">
-                                                                    <i class="fas fa-trash"></i>
-                                                                </button>
-                                                            </form>
-                                                        <?php endif; ?>
-                                                        
-                                                        <?php if ($item['error_message']): ?>
-                                                            <button class="btn btn-sm btn-outline-warning" 
-                                                                    onclick="showError('<?= htmlspecialchars(addslashes($item['error_message'])) ?>')"
-                                                                    title="Pokaż błąd">
-                                                                <i class="fas fa-exclamation-circle"></i>
-                                                            </button>
-                                                        <?php endif; ?>
-                                                    </div>
+                                                    <?php if ($item['error_message']): ?>
+                                                        <button class="btn btn-sm btn-outline-warning" 
+                                                                onclick="showError('<?= htmlspecialchars(addslashes($item['error_message'])) ?>')"
+                                                                title="Pokaż błąd">
+                                                            <i class="fas fa-exclamation-circle"></i>
+                                                        </button>
+                                                    <?php else: ?>
+                                                        <span class="text-muted">-</span>
+                                                    <?php endif; ?>
                                                 </td>
                                             </tr>
                                         <?php endforeach; ?>

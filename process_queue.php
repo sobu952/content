@@ -2,27 +2,6 @@
 // Skrypt przetwarzający kolejkę zadań
 // Może być uruchamiany przez cron/daemon (CLI) lub ręcznie (WWW)
 
-// WAŻNE: Upewnij się, że plik config.php istnieje i zawiera definicję funkcji getDbConnection()
-// Przykład:
-// function getDbConnection() {
-//     static $pdo = null;
-//     if ($pdo === null) {
-//         $dsn = 'mysql:host=localhost;dbname=twoja_baza;charset=utf8mb4';
-//         $username = 'twoja_nazwa';
-//         $password = 'twoje_haslo';
-//         try {
-//             $pdo = new PDO($dsn, $username, $password, [
-//                 PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-//                 PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-//                 PDO::ATTR_EMULATE_PREPARES => false,
-//             ]);
-//         } catch (PDOException $e) {
-//             error_log("CRITICAL ERROR: Failed to connect to database: " . $e->getMessage());
-//             exit(1);
-//         }
-//     }
-//     return $pdo;
-// }
 require_once 'config.php';
 
 // Zmienna globalna do określania trybu (CLI vs WWW)
@@ -30,8 +9,6 @@ $is_cli_mode = php_sapi_name() === 'cli';
 
 /**
  * Loguje wiadomość do konsoli/przeglądarki i do pliku logu.
- * @param string $message Wiadomość do zalogowania.
- * @param string $type Typ wiadomości (info, error, success). Używany tylko w trybie WWW.
  */
 function logMessage($message, $type = 'info') {
     global $is_cli_mode;
@@ -54,11 +31,11 @@ function logMessage($message, $type = 'info') {
     }
 
     // Zapisz do pliku log (zawsze)
-    $log_dir = __DIR__ . '/logs'; // Katalog 'logs' w tym samym miejscu co skrypt
+    $log_dir = __DIR__ . '/logs';
     if (!file_exists($log_dir)) {
         if (!mkdir($log_dir, 0755, true)) {
             error_log("Failed to create log directory: $log_dir");
-            return; // Nie możemy zapisać logu, więc kończymy
+            return;
         }
     }
     $log_file = $log_dir . '/queue_' . date('Y-m-d') . '.log';
@@ -67,7 +44,6 @@ function logMessage($message, $type = 'info') {
 
 /**
  * Pobiera klucz API Gemini z ustawień bazy danych.
- * @return string|null Klucz API lub null, jeśli nie znaleziono.
  */
 function getGeminiApiKey() {
     $pdo = getDbConnection();
@@ -79,38 +55,29 @@ function getGeminiApiKey() {
 
 /**
  * Pobiera opóźnienie w minutach przed pierwszą próbą przetwarzania zadania.
- * @return int Opóźnienie w minutach. Domyślnie 1.
  */
 function getProcessingDelayMinutes() {
     $pdo = getDbConnection();
     $stmt = $pdo->prepare("SELECT setting_value FROM settings WHERE setting_key = 'processing_delay_minutes'");
     $stmt->execute();
     $result = $stmt->fetch();
-    // Zwróć wartość jako int, domyślnie 1, jeśli nie znaleziono lub nie jest liczbą
     return $result ? (int)$result['setting_value'] : 1; 
 }
 
 /**
  * Bezpiecznie zamienia placeholdery w szablonie promptu.
- * Placeholdery powinny być w formacie {nazwa_zmiennej}.
- * @param string $template Szablon promptu z placeholderami.
- * @param array $replacements Tablica asocjacyjna klucz => wartość do zamiany.
- * @return string Prompt z zamienionymi wartościami.
- * @throws Exception Jeśli brakuje wartości dla jakiegoś placeholdera.
  */
 function replacePromptPlaceholders($template, $replacements) {
     $callback = function($matches) use ($replacements) {
-        $key = $matches[1]; // Nazwa zmiennej wewnątrz klamerek
+        $key = $matches[1];
         if (!isset($replacements[$key])) {
             throw new Exception("Missing replacement for placeholder: '{$key}' in prompt template. Available keys: " . implode(', ', array_keys($replacements)));
         }
         return $replacements[$key];
     };
     
-    // Użyj preg_replace_callback do znalezienia i zamiany wszystkich {klucz}
     $processed_prompt = preg_replace_callback('/\{([a-zA-Z0-9_]+)\}/', $callback, $template);
     
-    // Sprawdź, czy nie było błędów podczas preg_replace_callback
     if ($processed_prompt === null) {
         throw new Exception("Error during prompt placeholder replacement using regex.");
     }
@@ -120,10 +87,6 @@ function replacePromptPlaceholders($template, $replacements) {
 
 /**
  * Wywołuje API Gemini.
- * @param string $prompt Treść promptu do wysłania.
- * @param string $api_key Klucz API Gemini.
- * @return string Wygenerowana treść.
- * @throws Exception W przypadku błędu API lub niepoprawnej odpowiedzi.
  */
 function callGeminiAPI($prompt, $api_key) {
     $url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent";
@@ -173,7 +136,7 @@ function callGeminiAPI($prompt, $api_key) {
         'Content-Type: application/json',
         'X-Goog-Api-Key: ' . $api_key
     ]);
-    curl_setopt($ch, CURLOPT_TIMEOUT, 120);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 300); // Zwiększony timeout do 5 minut
     curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 30);
     curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
     curl_setopt($ch, CURLOPT_USERAGENT, 'SEO Content Generator/1.0');
@@ -200,7 +163,7 @@ function callGeminiAPI($prompt, $api_key) {
     $result = json_decode($response, true);
     
     if (json_last_error() !== JSON_ERROR_NONE) {
-        throw new Exception("Invalid JSON response from API: " . json_last_error_msg() . " - Response: " . substr($response, 0, 500) . (strlen($response) > 500 ? '...' : ''));
+        throw new Exception("Invalid JSON response from API: " . json_last_error_msg());
     }
     
     logMessage("API Response structure (top keys): " . print_r(array_keys($result), true));
@@ -222,10 +185,6 @@ function callGeminiAPI($prompt, $api_key) {
 
 /**
  * Przetwarza pojedynczy element zadania z kolejki.
- * @param PDO $pdo Obiekt połączenia z bazą danych.
- * @param array $queue_item Dane elementu z kolejki.
- * @param string $api_key Klucz API Gemini.
- * @throws Exception W przypadku błędu podczas przetwarzania zadania.
  */
 function processTaskItem($pdo, $queue_item, $api_key) {
     $task_item_id = $queue_item['task_item_id'];
@@ -261,8 +220,12 @@ function processTaskItem($pdo, $queue_item, $api_key) {
     $verify_prompt_template_data = $stmt->fetch();
     $verify_prompt_template = $verify_prompt_template_data ? $verify_prompt_template_data['content'] : null;
     
-    if (!$generate_prompt_template || !$verify_prompt_template) {
-        throw new Exception("Prompts (generate or verify) not found for content type ID: " . $task_item['content_type_id']);
+    if (!$generate_prompt_template) {
+        throw new Exception("Generate prompt not found for content type ID: " . $task_item['content_type_id']);
+    }
+    
+    if (!$verify_prompt_template) {
+        throw new Exception("Verify prompt not found for content type ID: " . $task_item['content_type_id']);
     }
     
     $input_data = json_decode($task_item['input_data'], true);
@@ -276,37 +239,38 @@ function processTaskItem($pdo, $queue_item, $api_key) {
     $replacements = $input_data;
     $replacements['strictness_level'] = $task_item['strictness_level'];
     
-    // Zamień zmienne w promptcie generowania za pomocą bezpiecznej funkcji
+    // Zamień zmienne w promptcie generowania
     $generate_prompt = replacePromptPlaceholders($generate_prompt_template, $replacements);
     
     logMessage("Final generate prompt length: " . strlen($generate_prompt));
     
-    // Wygeneruj treść
+    // KROK 1: Wygeneruj treść
     try {
         $generated_text = callGeminiAPI($generate_prompt, $api_key);
         logMessage("Content generated successfully for ID {$task_item_id}, length: " . strlen($generated_text));
     } catch (Exception $e) {
         logMessage("Error generating content for ID {$task_item_id}: " . $e->getMessage(), 'error');
-        throw $e; // Przekaz błąd dalej
+        throw $e;
     }
     
-    // Przygotuj prompt weryfikacji
+    // KROK 2: Zweryfikuj treść
+    logMessage("Verifying content for ID {$task_item_id}...");
+    
+    // Przygotuj prompt weryfikacji z wygenerowaną treścią
     $verify_replacements = ['generated_text' => $generated_text];
     $verify_prompt = replacePromptPlaceholders($verify_prompt_template, $verify_replacements);
     
-    logMessage("Verifying content for ID {$task_item_id}...");
-    
-    // Zweryfikuj treść
     try {
         $verified_text = callGeminiAPI($verify_prompt, $api_key);
         logMessage("Content verified successfully for ID {$task_item_id}, length: " . strlen($verified_text));
     } catch (Exception $e) {
         logMessage("Error verifying content for ID {$task_item_id}: " . $e->getMessage(), 'error');
-        $verified_text = $generated_text; // Nadal zapisujemy, co zostało wygenerowane
+        // W przypadku błędu weryfikacji, użyj oryginalnego tekstu
+        $verified_text = $generated_text;
         logMessage("Using original generated text as verified text due to verification failure.");
     }
     
-    // Zapisz wygenerowaną treść
+    // KROK 3: Zapisz oba teksty
     $stmt = $pdo->prepare("
         INSERT INTO generated_content (task_item_id, generated_text, verified_text, status) 
         VALUES (?, ?, ?, 'verified')
@@ -322,8 +286,6 @@ function processTaskItem($pdo, $queue_item, $api_key) {
 
 /**
  * Aktualizuje ogólny status zadania na podstawie statusów jego elementów.
- * @param PDO $pdo Obiekt połączenia z bazą danych.
- * @param int $task_id ID zadania.
  */
 function updateTaskStatus($pdo, $task_id) {
     $stmt = $pdo->prepare("
@@ -342,14 +304,14 @@ function updateTaskStatus($pdo, $task_id) {
     $new_status = 'pending'; 
     
     if ($stats['total_items'] == 0) {
-        $new_status = 'no_items';
+        $new_status = 'pending';
     } elseif ($stats['completed_items'] == $stats['total_items']) {
         $new_status = 'completed';
     } elseif ($stats['failed_items'] == $stats['total_items']) {
         $new_status = 'failed';
-    } elseif ($stats['processing_items'] > 0 || $stats['pending_items'] > 0 || ($stats['completed_items'] > 0 && ($stats['completed_items'] + $stats['failed_items']) < $stats['total_items'])) {
+    } elseif ($stats['processing_items'] > 0 || $stats['pending_items'] > 0) {
         $new_status = 'processing';
-    } elseif ($stats['completed_items'] + $stats['failed_items'] == $stats['total_items'] && $stats['failed_items'] > 0) {
+    } elseif ($stats['completed_items'] > 0 && $stats['failed_items'] > 0) {
         $new_status = 'partial_failure';
     }
 
@@ -386,11 +348,12 @@ if (!$is_cli_mode) {
             .info { border-left: 4px solid #007bff; }
             .container { max-width: 900px; margin: 0 auto; }
         </style>
+        <meta http-equiv="refresh" content="10">
     </head>
     <body>
         <div class="container">
             <h1>Queue Processor (Manual Trigger)</h1>
-            <p>This page processes one queue item per refresh.</p>
+            <p>This page processes one queue item per refresh. Auto-refresh every 10 seconds.</p>
     <?php
 }
 
@@ -418,22 +381,19 @@ do {
     try {
         $pdo->beginTransaction();
         
-        // Pobierz następny element z kolejki
-        // Dodano warunek na opóźnienie:
-        // (tq.attempts > 0 OR tq.created_at <= NOW() - INTERVAL ? MINUTE)
-        // Oznacza to: "albo to jest ponawiana próba (attempts > 0)
-        // ALBO to jest nowo dodane zadanie (attempts = 0) I upłynął już zdefiniowany czas opóźnienia"
+        // Pobierz następny element z kolejki - TYLKO JEDEN NA RAZ
         $stmt = $pdo->prepare("
             SELECT tq.*, ti.task_id
             FROM task_queue tq
             JOIN task_items ti ON tq.task_item_id = ti.id
-            WHERE tq.status = 'pending' AND tq.attempts < tq.max_attempts
+            WHERE tq.status = 'pending' 
+            AND tq.attempts < tq.max_attempts
             AND (tq.attempts > 0 OR tq.created_at <= NOW() - INTERVAL ? MINUTE)
             ORDER BY tq.priority DESC, tq.created_at ASC
             LIMIT 1
             FOR UPDATE
         ");
-        $stmt->execute([$processing_delay_minutes]); // Przekazujemy wartość opóźnienia do zapytania
+        $stmt->execute([$processing_delay_minutes]);
         $queue_item = $stmt->fetch();
         
         if (!$queue_item) {
@@ -455,7 +415,12 @@ do {
         $stmt = $pdo->prepare("UPDATE task_items SET status = 'processing' WHERE id = ?");
         $stmt->execute([$queue_item['task_item_id']]);
         
+        $pdo->commit(); // Commit przed długotrwałym procesem
+        
         try {
+            // Rozpocznij nową transakcję dla przetwarzania
+            $pdo->beginTransaction();
+            
             processTaskItem($pdo, $queue_item, $api_key);
             
             // Oznacz element kolejki jako ukończony
@@ -513,7 +478,7 @@ do {
     }
     
     if ($is_cli_mode) {
-        sleep(2);
+        sleep(5); // Krótsze opóźnienie między zadaniami
     }
 
 } while ($is_cli_mode);

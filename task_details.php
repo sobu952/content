@@ -1,8 +1,7 @@
 <?php
 require_once 'auth_check.php';
 
-// Ustawienie kodowania wewnętrznego dla funkcji multibyte, jeśli nie jest już ustawione globalnie
-// To jest ważne dla poprawnego liczenia znaków w UTF-8
+// Ustawienie kodowania wewnętrznego dla funkcji multibyte
 mb_internal_encoding('UTF-8');
 
 if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
@@ -42,21 +41,29 @@ if ($_POST && isset($_POST['action']) && $_POST['action'] === 'regenerate') {
     
     if ($stmt->fetch()) {
         try {
-            // Resetuj status elementu zadania
-            $stmt = $pdo->prepare("UPDATE task_items SET status = 'pending' WHERE id = ?");
-            $stmt->execute([$task_item_id]);
+            $pdo->beginTransaction();
             
             // Usuń poprzednią treść
             $stmt = $pdo->prepare("DELETE FROM generated_content WHERE task_item_id = ?");
             $stmt->execute([$task_item_id]);
             
-            // Dodaj do kolejki z wysokim priorytetem
-            $stmt = $pdo->prepare("INSERT INTO task_queue (task_item_id, priority) VALUES (?, 10) ON DUPLICATE KEY UPDATE priority = 10, status = 'pending', attempts = 0");
+            // Resetuj status elementu zadania
+            $stmt = $pdo->prepare("UPDATE task_items SET status = 'pending' WHERE id = ?");
             $stmt->execute([$task_item_id]);
             
-            $success = 'Tekst został dodany do kolejki regeneracji.';
+            // Usuń stare wpisy z kolejki dla tego elementu
+            $stmt = $pdo->prepare("DELETE FROM task_queue WHERE task_item_id = ?");
+            $stmt->execute([$task_item_id]);
+            
+            // Dodaj do kolejki z wysokim priorytetem
+            $stmt = $pdo->prepare("INSERT INTO task_queue (task_item_id, priority) VALUES (?, 100)");
+            $stmt->execute([$task_item_id]);
+            
+            $pdo->commit();
+            $success = 'Tekst został dodany do kolejki regeneracji z wysokim priorytetem.';
             
         } catch(Exception $e) {
+            $pdo->rollBack();
             $error = 'Błąd regeneracji: ' . $e->getMessage();
         }
     }
@@ -158,13 +165,15 @@ $content_type_fields = json_decode($task['fields'], true);
                                     'pending' => 'bg-warning',
                                     'processing' => 'bg-info',
                                     'completed' => 'bg-success',
-                                    'failed' => 'bg-danger'
+                                    'failed' => 'bg-danger',
+                                    'partial_failure' => 'bg-warning'
                                 ];
                                 $status_labels = [
                                     'pending' => 'Oczekuje',
                                     'processing' => 'Przetwarzanie',
                                     'completed' => 'Ukończone',
-                                    'failed' => 'Błąd'
+                                    'failed' => 'Błąd',
+                                    'partial_failure' => 'Częściowo ukończone'
                                 ];
                                 ?>
                                 <span class="badge <?= $status_classes[$task['status']] ?>">
@@ -233,6 +242,11 @@ $content_type_fields = json_decode($task['fields'], true);
                                                         </div>
                                                         <small class="text-muted">
                                                             Status: <?= $item['content_status'] === 'verified' ? 'Zweryfikowane' : 'Wygenerowane' ?> | (<?= $char_count ?> znaków ze spacjami)
+                                                            <?php if ($item['verified_text'] && $item['generated_text'] && $item['verified_text'] !== $item['generated_text']): ?>
+                                                                <br><span class="text-success"><i class="fas fa-check"></i> Tekst został zweryfikowany i poprawiony</span>
+                                                            <?php elseif ($item['verified_text'] && $item['generated_text'] && $item['verified_text'] === $item['generated_text']): ?>
+                                                                <br><span class="text-info"><i class="fas fa-info"></i> Tekst został zweryfikowany bez zmian</span>
+                                                            <?php endif; ?>
                                                         </small>
                                                     <?php else: ?>
                                                         <span class="text-muted">Brak treści</span>
@@ -250,7 +264,7 @@ $content_type_fields = json_decode($task['fields'], true);
                                                             <input type="hidden" name="action" value="regenerate">
                                                             <input type="hidden" name="task_item_id" value="<?= $item['id'] ?>">
                                                             <button type="submit" class="btn btn-sm btn-outline-warning" 
-                                                                    onclick="return confirm('Czy na pewno chcesz regenerować ten tekst?')">
+                                                                    onclick="return confirm('Czy na pewno chcesz regenerować ten tekst? Poprzedni tekst zostanie zastąpiony.')">
                                                                 <i class="fas fa-redo"></i>
                                                             </button>
                                                         </form>
@@ -307,12 +321,15 @@ $content_type_fields = json_decode($task['fields'], true);
                     let html = '';
                     
                     if (data.verified_text) {
-                        html += '<h6>Zweryfikowana treść:</h6>';
-                        html += '<div class="border p-3 mb-3">' + data.verified_text + '</div>';
-                    }
-                    
-                    if (data.generated_text) {
-                        html += '<h6>Wygenerowana treść:</h6>';
+                        html += '<h6><i class="fas fa-check-circle text-success"></i> Zweryfikowana treść:</h6>';
+                        html += '<div class="border p-3 mb-3 bg-light">' + data.verified_text + '</div>';
+                        
+                        if (data.generated_text && data.verified_text !== data.generated_text) {
+                            html += '<h6><i class="fas fa-file-alt text-info"></i> Oryginalna wygenerowana treść:</h6>';
+                            html += '<div class="border p-3 bg-white">' + data.generated_text + '</div>';
+                        }
+                    } else if (data.generated_text) {
+                        html += '<h6><i class="fas fa-file-alt text-info"></i> Wygenerowana treść:</h6>';
                         html += '<div class="border p-3">' + data.generated_text + '</div>';
                     }
                     

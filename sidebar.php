@@ -44,6 +44,11 @@
                 </a>
             </li>
             <li class="nav-item">
+                <a class="nav-link <?= basename($_SERVER['PHP_SELF']) == 'admin_queue.php' ? 'active' : '' ?>" href="admin_queue.php">
+                    <i class="fas fa-list-ol"></i> Kolejka (Admin)
+                </a>
+            </li>
+            <li class="nav-item">
                 <a class="nav-link <?= basename($_SERVER['PHP_SELF']) == 'admin_settings.php' ? 'active' : '' ?>" href="admin_settings.php">
                     <i class="fas fa-cog"></i> Ustawienia
                 </a>
