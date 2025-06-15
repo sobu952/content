@@ -65,6 +65,87 @@ function getProcessingDelayMinutes() {
 }
 
 /**
+ * Pobiera treść strony z podanego URL
+ */
+function fetchPageContent($url) {
+    logMessage("Fetching content from URL: $url");
+    
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+    curl_setopt($ch, CURLOPT_MAXREDIRS, 5);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+    curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36');
+    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+        'Accept-Language: pl,en-US;q=0.7,en;q=0.3',
+        'Accept-Encoding: gzip, deflate',
+        'DNT: 1',
+        'Connection: keep-alive',
+        'Upgrade-Insecure-Requests: 1',
+    ]);
+    
+    $response = curl_exec($ch);
+    $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $curl_error = curl_error($ch);
+    curl_close($ch);
+    
+    if ($curl_error) {
+        logMessage("cURL error fetching $url: $curl_error", 'error');
+        return '';
+    }
+    
+    if ($http_code !== 200) {
+        logMessage("HTTP error $http_code fetching $url", 'error');
+        return '';
+    }
+    
+    if (empty($response)) {
+        logMessage("Empty response from $url", 'error');
+        return '';
+    }
+    
+    // Wyczyść HTML i wyciągnij tekst
+    $content = extractTextFromHtml($response);
+    logMessage("Extracted " . strlen($content) . " characters from $url");
+    
+    return $content;
+}
+
+/**
+ * Wyciąga tekst z HTML, usuwając tagi i niepotrzebne elementy
+ */
+function extractTextFromHtml($html) {
+    // Usuń skrypty, style i inne niepotrzebne elementy
+    $html = preg_replace('/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/mi', '', $html);
+    $html = preg_replace('/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/mi', '', $html);
+    $html = preg_replace('/<nav\b[^<]*(?:(?!<\/nav>)<[^<]*)*<\/nav>/mi', '', $html);
+    $html = preg_replace('/<footer\b[^<]*(?:(?!<\/footer>)<[^<]*)*<\/footer>/mi', '', $html);
+    $html = preg_replace('/<header\b[^<]*(?:(?!<\/header>)<[^<]*)*<\/header>/mi', '', $html);
+    
+    // Konwertuj HTML entities
+    $html = html_entity_decode($html, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+    
+    // Usuń wszystkie tagi HTML
+    $text = strip_tags($html);
+    
+    // Wyczyść białe znaki
+    $text = preg_replace('/\s+/', ' ', $text);
+    $text = trim($text);
+    
+    // Ogranicz długość do 2000 znaków (żeby nie przekroczyć limitów API)
+    if (strlen($text) > 2000) {
+        $text = substr($text, 0, 2000) . '...';
+    }
+    
+    return $text;
+}
+
+/**
  * Bezpiecznie zamienia placeholdery w szablonie promptu.
  */
 function replacePromptPlaceholders($template, $replacements) {
@@ -235,9 +316,16 @@ function processTaskItem($pdo, $queue_item, $api_key) {
 
     logMessage("Input data for ID {$task_item_id}: " . json_encode($input_data));
     
+    // Pobierz treść strony z URL
+    $page_content = '';
+    if (isset($input_data['url']) && !empty($input_data['url'])) {
+        $page_content = fetchPageContent($input_data['url']);
+    }
+    
     // Przygotuj dane do zamiany w promptach
     $replacements = $input_data;
     $replacements['strictness_level'] = $task_item['strictness_level'];
+    $replacements['page_content'] = $page_content;
     
     // Zamień zmienne w promptcie generowania
     $generate_prompt = replacePromptPlaceholders($generate_prompt_template, $replacements);
@@ -263,6 +351,14 @@ function processTaskItem($pdo, $queue_item, $api_key) {
     try {
         $verified_text = callGeminiAPI($verify_prompt, $api_key);
         logMessage("Content verified successfully for ID {$task_item_id}, length: " . strlen($verified_text));
+        
+        // Sprawdź czy tekst rzeczywiście został zmieniony
+        if (trim($verified_text) === trim($generated_text)) {
+            logMessage("Verification did not change the text for ID {$task_item_id}");
+        } else {
+            logMessage("Text was modified during verification for ID {$task_item_id}");
+        }
+        
     } catch (Exception $e) {
         logMessage("Error verifying content for ID {$task_item_id}: " . $e->getMessage(), 'error');
         // W przypadku błędu weryfikacji, użyj oryginalnego tekstu

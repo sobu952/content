@@ -77,6 +77,17 @@ foreach ($prompts as $prompt) {
             font-family: monospace;
             font-size: 0.9em;
         }
+        .placeholder-info {
+            background-color: #e3f2fd;
+            border: 1px solid #2196f3;
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 15px;
+        }
+        .placeholder-list {
+            font-family: monospace;
+            font-size: 0.9em;
+        }
     </style>
 </head>
 <body>
@@ -112,6 +123,24 @@ foreach ($prompts as $prompt) {
                                 <h5 class="mb-0">Edytuj prompt</h5>
                             </div>
                             <div class="card-body">
+                                <div class="placeholder-info">
+                                    <h6><i class="fas fa-info-circle"></i> Dostępne placeholdery:</h6>
+                                    <div class="placeholder-list">
+                                        <strong>Dla promptu generowania:</strong><br>
+                                        {url} - Adres URL<br>
+                                        {keywords} - Frazy SEO<br>
+                                        {headings} - Nagłówki H2<br>
+                                        {characters} - Liczba znaków<br>
+                                        {lead} - Czy zacząć od leadu<br>
+                                        {internal_linking} - Linkowanie wewnętrzne<br>
+                                        {page_content} - Treść pobranej strony<br>
+                                        {strictness_level} - Poziom naturalności<br><br>
+                                        
+                                        <strong>Dla promptu weryfikacji:</strong><br>
+                                        {generated_text} - Wygenerowana treść
+                                    </div>
+                                </div>
+                                
                                 <form method="POST">
                                     <div class="mb-3">
                                         <label for="content_type_id" class="form-label">Typ treści *</label>
