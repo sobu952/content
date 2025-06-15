@@ -137,11 +137,7 @@ function extractTextFromHtml($html) {
     $text = preg_replace('/\s+/', ' ', $text);
     $text = trim($text);
     
-    // Ogranicz długość do 2000 znaków (żeby nie przekroczyć limitów API)
-    if (strlen($text) > 2000) {
-        $text = substr($text, 0, 2000) . '...';
-    }
-    
+    // USUNIĘTO OGRANICZENIE DŁUGOŚCI - pełna treść strony będzie dostępna
     return $text;
 }
 
@@ -494,7 +490,7 @@ do {
         
         if (!$queue_item) {
             $pdo->commit();
-            logMessage("No ready items in queue (either empty or not yet delayed), waiting...");
+            // ZMIENIONO: Nie loguj "No items in queue" - to niepotrzebne
             if ($is_cli_mode) {
                 sleep(10); 
             }
