@@ -43,18 +43,43 @@ function logMessage($message, $type = 'info') {
 }
 
 /**
- * Pobiera klucz API Gemini z ustawień bazy danych.
+ * Czyści tekst z fragmentów markdown i niepożądanych elementów
  */
-function getGeminiApiKey() {
-    $pdo = getDbConnection();
-    $stmt = $pdo->prepare("SELECT setting_value FROM settings WHERE setting_key = 'gemini_api_key'");
-    $stmt->execute();
-    $result = $stmt->fetch();
-    return $result ? $result['setting_value'] : null;
+function cleanGeneratedText($text) {
+    // Usuń fragmenty ```html i ```
+    $text = preg_replace('/```html\s*/i', '', $text);
+    $text = preg_replace('/```\s*$/', '', $text);
+    $text = preg_replace('/```/', '', $text);
+    
+    // Usuń inne popularne fragmenty markdown
+    $text = preg_replace('/^```[a-zA-Z]*\s*/m', '', $text);
+    
+    // Usuń nadmiarowe białe znaki
+    $text = trim($text);
+    
+    return $text;
 }
 
 /**
- * Pobiera opóźnienie w minutach przed pierwszą próbą przetwarzania zadania.
+ * Pobiera konfigurację AI dla zadania
+ */
+function getAIConfiguration($pdo, $task_id) {
+    $stmt = $pdo->prepare("
+        SELECT t.ai_model_id, am.model_name, am.model_key, ap.name as provider_name, 
+               ap.api_base_url, ap.api_type, ak.api_key
+        FROM tasks t
+        JOIN ai_models am ON t.ai_model_id = am.id
+        JOIN ai_providers ap ON am.provider_id = ap.id
+        JOIN ai_api_keys ak ON ap.id = ak.provider_id
+        WHERE t.id = ? AND ak.is_active = 1
+        LIMIT 1
+    ");
+    $stmt->execute([$task_id]);
+    return $stmt->fetch();
+}
+
+/**
+ * Pobierz opóźnienie w minutach przed pierwszą próbą przetwarzania zadania.
  */
 function getProcessingDelayMinutes() {
     $pdo = getDbConnection();
@@ -137,7 +162,6 @@ function extractTextFromHtml($html) {
     $text = preg_replace('/\s+/', ' ', $text);
     $text = trim($text);
     
-    // USUNIĘTO OGRANICZENIE DŁUGOŚCI - pełna treść strony będzie dostępna
     return $text;
 }
 
@@ -213,7 +237,7 @@ function callGeminiAPI($prompt, $api_key) {
         'Content-Type: application/json',
         'X-Goog-Api-Key: ' . $api_key
     ]);
-    curl_setopt($ch, CURLOPT_TIMEOUT, 300); // Zwiększony timeout do 5 minut
+    curl_setopt($ch, CURLOPT_TIMEOUT, 300);
     curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 30);
     curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
     curl_setopt($ch, CURLOPT_USERAGENT, 'SEO Content Generator/1.0');
@@ -261,16 +285,168 @@ function callGeminiAPI($prompt, $api_key) {
 }
 
 /**
+ * Wywołuje API OpenAI.
+ */
+function callOpenAIAPI($prompt, $api_key, $model = 'gpt-3.5-turbo') {
+    $url = "https://api.openai.com/v1/chat/completions";
+    
+    $data = [
+        'model' => $model,
+        'messages' => [
+            [
+                'role' => 'user',
+                'content' => $prompt
+            ]
+        ],
+        'temperature' => 0.7,
+        'max_tokens' => 4000
+    ];
+    
+    logMessage("Calling OpenAI API ($model) with prompt length: " . strlen($prompt));
+    
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_POST, 1);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        'Content-Type: application/json',
+        'Authorization: Bearer ' . $api_key
+    ]);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 300);
+    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 30);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+    curl_setopt($ch, CURLOPT_USERAGENT, 'SEO Content Generator/1.0');
+    
+    $response = curl_exec($ch);
+    $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $curl_error = curl_error($ch);
+    curl_close($ch);
+    
+    logMessage("OpenAI API Response HTTP Code: $http_code");
+    
+    if ($curl_error) {
+        throw new Exception("cURL Error: {$curl_error}");
+    }
+    
+    if ($http_code !== 200) {
+        $error_details = json_decode($response, true);
+        $error_message = isset($error_details['error']['message']) ? $error_details['error']['message'] : $response;
+        throw new Exception("OpenAI API Error: HTTP $http_code - " . $error_message);
+    }
+    
+    $result = json_decode($response, true);
+    
+    if (json_last_error() !== JSON_ERROR_NONE) {
+        throw new Exception("Invalid JSON response from OpenAI API: " . json_last_error_msg());
+    }
+    
+    if (isset($result['choices'][0]['message']['content'])) {
+        $generated_text = $result['choices'][0]['message']['content'];
+        logMessage("Generated text length: " . strlen($generated_text));
+        return $generated_text;
+    } elseif (isset($result['error'])) {
+        throw new Exception("OpenAI API Error: " . $result['error']['message']);
+    } else {
+        throw new Exception("Unexpected OpenAI response format");
+    }
+}
+
+/**
+ * Wywołuje API Anthropic (Claude).
+ */
+function callAnthropicAPI($prompt, $api_key, $model = 'claude-3-haiku-20240307') {
+    $url = "https://api.anthropic.com/v1/messages";
+    
+    $data = [
+        'model' => $model,
+        'max_tokens' => 4000,
+        'messages' => [
+            [
+                'role' => 'user',
+                'content' => $prompt
+            ]
+        ]
+    ];
+    
+    logMessage("Calling Anthropic API ($model) with prompt length: " . strlen($prompt));
+    
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_POST, 1);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        'Content-Type: application/json',
+        'x-api-key: ' . $api_key,
+        'anthropic-version: 2023-06-01'
+    ]);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 300);
+    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 30);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+    curl_setopt($ch, CURLOPT_USERAGENT, 'SEO Content Generator/1.0');
+    
+    $response = curl_exec($ch);
+    $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $curl_error = curl_error($ch);
+    curl_close($ch);
+    
+    logMessage("Anthropic API Response HTTP Code: $http_code");
+    
+    if ($curl_error) {
+        throw new Exception("cURL Error: {$curl_error}");
+    }
+    
+    if ($http_code !== 200) {
+        $error_details = json_decode($response, true);
+        $error_message = isset($error_details['error']['message']) ? $error_details['error']['message'] : $response;
+        throw new Exception("Anthropic API Error: HTTP $http_code - " . $error_message);
+    }
+    
+    $result = json_decode($response, true);
+    
+    if (json_last_error() !== JSON_ERROR_NONE) {
+        throw new Exception("Invalid JSON response from Anthropic API: " . json_last_error_msg());
+    }
+    
+    if (isset($result['content'][0]['text'])) {
+        $generated_text = $result['content'][0]['text'];
+        logMessage("Generated text length: " . strlen($generated_text));
+        return $generated_text;
+    } elseif (isset($result['error'])) {
+        throw new Exception("Anthropic API Error: " . $result['error']['message']);
+    } else {
+        throw new Exception("Unexpected Anthropic response format");
+    }
+}
+
+/**
+ * Uniwersalna funkcja do wywołania odpowiedniego API
+ */
+function callAIAPI($prompt, $ai_config) {
+    switch ($ai_config['api_type']) {
+        case 'gemini':
+            return callGeminiAPI($prompt, $ai_config['api_key']);
+        case 'openai':
+            return callOpenAIAPI($prompt, $ai_config['api_key'], $ai_config['model_key']);
+        case 'anthropic':
+            return callAnthropicAPI($prompt, $ai_config['api_key'], $ai_config['model_key']);
+        default:
+            throw new Exception("Unsupported AI provider: " . $ai_config['api_type']);
+    }
+}
+
+/**
  * Przetwarza pojedynczy element zadania z kolejki.
  */
-function processTaskItem($pdo, $queue_item, $api_key) {
+function processTaskItem($pdo, $queue_item, $ai_config) {
     $task_item_id = $queue_item['task_item_id'];
     
     logMessage("Processing task item ID: $task_item_id");
     
     // Pobierz dane zadania
     $stmt = $pdo->prepare("
-        SELECT ti.*, t.strictness_level, ct.id as content_type_id
+        SELECT ti.*, t.strictness_level, ct.id as content_type_id, t.id as task_id
         FROM task_items ti
         JOIN tasks t ON ti.task_id = t.id
         JOIN content_types ct ON t.content_type_id = ct.id
@@ -330,7 +506,8 @@ function processTaskItem($pdo, $queue_item, $api_key) {
     
     // KROK 1: Wygeneruj treść
     try {
-        $generated_text = callGeminiAPI($generate_prompt, $api_key);
+        $generated_text = callAIAPI($generate_prompt, $ai_config);
+        $generated_text = cleanGeneratedText($generated_text); // Wyczyść tekst
         logMessage("Content generated successfully for ID {$task_item_id}, length: " . strlen($generated_text));
     } catch (Exception $e) {
         logMessage("Error generating content for ID {$task_item_id}: " . $e->getMessage(), 'error');
@@ -345,7 +522,8 @@ function processTaskItem($pdo, $queue_item, $api_key) {
     $verify_prompt = replacePromptPlaceholders($verify_prompt_template, $verify_replacements);
     
     try {
-        $verified_text = callGeminiAPI($verify_prompt, $api_key);
+        $verified_text = callAIAPI($verify_prompt, $ai_config);
+        $verified_text = cleanGeneratedText($verified_text); // Wyczyść tekst
         logMessage("Content verified successfully for ID {$task_item_id}, length: " . strlen($verified_text));
         
         // Sprawdź czy tekst rzeczywiście został zmieniony
@@ -452,16 +630,9 @@ if (!$is_cli_mode) {
 logMessage("Starting queue processor. Mode: " . ($is_cli_mode ? "CLI" : "WWW (Manual Trigger)"));
 
 $pdo = getDbConnection();
-$api_key = getGeminiApiKey();
 $processing_delay_minutes = getProcessingDelayMinutes();
 
-if (!$api_key) {
-    logMessage("ERROR: Gemini API key not configured in database.", 'error');
-    if (!$is_cli_mode) { echo "</div></body></html>"; ob_end_flush(); }
-    exit(1);
-}
-
-logMessage("API key configured. Processing delay set to: {$processing_delay_minutes} minutes.");
+logMessage("Processing delay set to: {$processing_delay_minutes} minutes.");
 logMessage(($is_cli_mode ? "Starting continuous processing loop." : "Processing one item."));
 
 // Ustawienie PDO na tryb rzucania wyjątków
@@ -490,7 +661,6 @@ do {
         
         if (!$queue_item) {
             $pdo->commit();
-            // ZMIENIONO: Nie loguj "No items in queue" - to niepotrzebne
             if ($is_cli_mode) {
                 sleep(10); 
             }
@@ -498,6 +668,14 @@ do {
         }
         
         logMessage("Attempting to process queue item ID: {$queue_item['id']} (Task Item ID: {$queue_item['task_item_id']})");
+
+        // Pobierz konfigurację AI dla tego zadania
+        $ai_config = getAIConfiguration($pdo, $queue_item['task_id']);
+        if (!$ai_config) {
+            throw new Exception("No AI configuration found for task ID: {$queue_item['task_id']}");
+        }
+
+        logMessage("Using AI: {$ai_config['provider_name']} - {$ai_config['model_name']}");
 
         // Oznacz element kolejki jako przetwarzany
         $stmt = $pdo->prepare("UPDATE task_queue SET status = 'processing', processed_at = NOW() WHERE id = ?");
@@ -513,7 +691,7 @@ do {
             // Rozpocznij nową transakcję dla przetwarzania
             $pdo->beginTransaction();
             
-            processTaskItem($pdo, $queue_item, $api_key);
+            processTaskItem($pdo, $queue_item, $ai_config);
             
             // Oznacz element kolejki jako ukończony
             $stmt = $pdo->prepare("UPDATE task_queue SET status = 'completed' WHERE id = ?");

@@ -14,10 +14,13 @@ $pdo = getDbConnection();
 
 // Sprawdź czy zadanie należy do użytkownika
 $stmt = $pdo->prepare("
-    SELECT t.*, p.name as project_name, ct.name as content_type_name, ct.fields
+    SELECT t.*, p.name as project_name, ct.name as content_type_name, ct.fields,
+           am.name as ai_model_name, ap.name as ai_provider_name
     FROM tasks t
     JOIN projects p ON t.project_id = p.id
     JOIN content_types ct ON t.content_type_id = ct.id
+    LEFT JOIN ai_models am ON t.ai_model_id = am.id
+    LEFT JOIN ai_providers ap ON am.provider_id = ap.id
     WHERE t.id = ? AND p.user_id = ?
 ");
 $stmt->execute([$task_id, $_SESSION['user_id']]);
@@ -26,6 +29,24 @@ $task = $stmt->fetch();
 if (!$task) {
     header('Location: tasks.php');
     exit;
+}
+
+/**
+ * Czyści tekst z fragmentów markdown i niepożądanych elementów
+ */
+function cleanDisplayText($text) {
+    // Usuń fragmenty ```html i ```
+    $text = preg_replace('/```html\s*/i', '', $text);
+    $text = preg_replace('/```\s*$/', '', $text);
+    $text = preg_replace('/```/', '', $text);
+    
+    // Usuń inne popularne fragmenty markdown
+    $text = preg_replace('/^```[a-zA-Z]*\s*/m', '', $text);
+    
+    // Usuń nadmiarowe białe znaki
+    $text = trim($text);
+    
+    return $text;
 }
 
 $success = '';
@@ -146,15 +167,24 @@ $content_type_fields = json_decode($task['fields'], true);
                 <div class="card mb-4">
                     <div class="card-body">
                         <div class="row">
-                            <div class="col-md-3">
+                            <div class="col-md-2">
                                 <strong>Projekt:</strong><br>
                                 <?= htmlspecialchars($task['project_name']) ?>
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-2">
                                 <strong>Typ treści:</strong><br>
                                 <?= htmlspecialchars($task['content_type_name']) ?>
                             </div>
                             <div class="col-md-3">
+                                <strong>Model AI:</strong><br>
+                                <?php if ($task['ai_model_name']): ?>
+                                    <small class="text-muted"><?= htmlspecialchars($task['ai_provider_name']) ?></small><br>
+                                    <?= htmlspecialchars($task['ai_model_name']) ?>
+                                <?php else: ?>
+                                    <span class="text-warning">Brak modelu</span>
+                                <?php endif; ?>
+                            </div>
+                            <div class="col-md-2">
                                 <strong>Poziom naturalności:</strong><br>
                                 <?= $task['strictness_level'] ?>
                             </div>
@@ -235,6 +265,7 @@ $content_type_fields = json_decode($task['fields'], true);
                                                         <?php
                                                             // Wybierz tekst do wyświetlenia i policzenia znaków
                                                             $displayed_text = $item['verified_text'] ?: $item['generated_text'];
+                                                            $displayed_text = cleanDisplayText($displayed_text);
                                                             $char_count = mb_strlen($displayed_text);
                                                         ?>
                                                         <div class="content-preview">
@@ -304,6 +335,22 @@ $content_type_fields = json_decode($task['fields'], true);
     
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        // Funkcja do czyszczenia tekstu z fragmentów markdown
+        function cleanDisplayText(text) {
+            // Usuń fragmenty ```html i ```
+            text = text.replace(/```html\s*/gi, '');
+            text = text.replace(/```\s*$/g, '');
+            text = text.replace(/```/g, '');
+            
+            // Usuń inne popularne fragmenty markdown
+            text = text.replace(/^```[a-zA-Z]*\s*/gm, '');
+            
+            // Usuń nadmiarowe białe znaki
+            text = text.trim();
+            
+            return text;
+        }
+        
         async function viewContent(taskItemId, url) {
             document.getElementById('contentModalTitle').textContent = 'Podgląd treści - ' + url;
             document.getElementById('contentModalBody').innerHTML = '<div class="text-center"><i class="fas fa-spinner fa-spin"></i> Ładowanie...</div>';
@@ -321,16 +368,19 @@ $content_type_fields = json_decode($task['fields'], true);
                     let html = '';
                     
                     if (data.verified_text) {
+                        const cleanedVerified = cleanDisplayText(data.verified_text);
                         html += '<h6><i class="fas fa-check-circle text-success"></i> Zweryfikowana treść:</h6>';
-                        html += '<div class="border p-3 mb-3 bg-light">' + data.verified_text + '</div>';
+                        html += '<div class="border p-3 mb-3 bg-light">' + cleanedVerified + '</div>';
                         
                         if (data.generated_text && data.verified_text !== data.generated_text) {
+                            const cleanedGenerated = cleanDisplayText(data.generated_text);
                             html += '<h6><i class="fas fa-file-alt text-info"></i> Oryginalna wygenerowana treść:</h6>';
-                            html += '<div class="border p-3 bg-white">' + data.generated_text + '</div>';
+                            html += '<div class="border p-3 bg-white">' + cleanedGenerated + '</div>';
                         }
                     } else if (data.generated_text) {
+                        const cleanedGenerated = cleanDisplayText(data.generated_text);
                         html += '<h6><i class="fas fa-file-alt text-info"></i> Wygenerowana treść:</h6>';
-                        html += '<div class="border p-3">' + data.generated_text + '</div>';
+                        html += '<div class="border p-3">' + cleanedGenerated + '</div>';
                     }
                     
                     document.getElementById('contentModalBody').innerHTML = html;

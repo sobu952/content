@@ -27,10 +27,22 @@ $stmt = $pdo->prepare("SELECT id, name FROM projects WHERE user_id = ? ORDER BY 
 $stmt->execute([$_SESSION['user_id']]);
 $user_projects = $stmt->fetchAll();
 
+// Pobierz dostępne modele AI
+$stmt = $pdo->query("
+    SELECT am.id, am.name, ap.name as provider_name 
+    FROM ai_models am
+    JOIN ai_providers ap ON am.provider_id = ap.id
+    WHERE am.is_active = 1 AND ap.is_active = 1
+    AND EXISTS (SELECT 1 FROM ai_api_keys ak WHERE ak.provider_id = ap.id AND ak.is_active = 1)
+    ORDER BY ap.name, am.name
+");
+$ai_models = $stmt->fetchAll();
+
 // Obsługa dodawania zadania
 if ($_POST && isset($_POST['action']) && $_POST['action'] === 'create_task') {
     $task_project_id = intval($_POST['project_id']);
     $content_type_id = intval($_POST['content_type_id']);
+    $ai_model_id = intval($_POST['ai_model_id']);
     $task_name = trim($_POST['task_name']);
     $strictness_level = floatval($_POST['strictness_level']);
     
@@ -41,6 +53,8 @@ if ($_POST && isset($_POST['action']) && $_POST['action'] === 'create_task') {
         $error = 'Nieprawidłowy projekt.';
     } elseif (empty($task_name)) {
         $error = 'Nazwa zadania jest wymagana.';
+    } elseif (empty($ai_model_id)) {
+        $error = 'Model AI jest wymagany.';
     } else {
         try {
             $pdo->beginTransaction();
@@ -52,8 +66,8 @@ if ($_POST && isset($_POST['action']) && $_POST['action'] === 'create_task') {
             $fields = json_decode($content_type['fields'], true);
             
             // Utwórz zadanie
-            $stmt = $pdo->prepare("INSERT INTO tasks (project_id, content_type_id, name, strictness_level) VALUES (?, ?, ?, ?)");
-            $stmt->execute([$task_project_id, $content_type_id, $task_name, $strictness_level]);
+            $stmt = $pdo->prepare("INSERT INTO tasks (project_id, content_type_id, ai_model_id, name, strictness_level) VALUES (?, ?, ?, ?, ?)");
+            $stmt->execute([$task_project_id, $content_type_id, $ai_model_id, $task_name, $strictness_level]);
             $task_id = $pdo->lastInsertId();
             
             // Sprawdź ile URL-i zostało dodanych
@@ -113,11 +127,14 @@ if ($project_id) {
 
 $stmt = $pdo->prepare("
     SELECT t.*, p.name as project_name, ct.name as content_type_name,
+           am.name as ai_model_name, ap.name as ai_provider_name,
            COUNT(ti.id) as item_count,
            COUNT(CASE WHEN ti.status = 'completed' THEN 1 END) as completed_count
     FROM tasks t
     JOIN projects p ON t.project_id = p.id
     JOIN content_types ct ON t.content_type_id = ct.id
+    LEFT JOIN ai_models am ON t.ai_model_id = am.id
+    LEFT JOIN ai_providers ap ON am.provider_id = ap.id
     LEFT JOIN task_items ti ON t.id = ti.task_id
     WHERE " . implode(' AND ', $where_conditions) . "
     GROUP BY t.id
@@ -189,6 +206,18 @@ $tasks = $stmt->fetchAll();
                     </div>
                 <?php endif; ?>
                 
+                <?php if (empty($ai_models)): ?>
+                    <div class="alert alert-warning">
+                        <h5><i class="fas fa-exclamation-triangle"></i> Brak dostępnych modeli AI</h5>
+                        <p>Nie można tworzyć zadań, ponieważ nie skonfigurowano żadnych modeli AI lub kluczy API.</p>
+                        <?php if (isAdmin()): ?>
+                            <p><a href="admin_ai_providers.php" class="btn btn-primary">Skonfiguruj modele AI</a></p>
+                        <?php else: ?>
+                            <p>Skontaktuj się z administratorem w celu skonfigurowania modeli AI.</p>
+                        <?php endif; ?>
+                    </div>
+                <?php endif; ?>
+                
                 <?php if (!$project_id): ?>
                     <div class="row mb-3">
                         <div class="col-md-6">
@@ -207,9 +236,11 @@ $tasks = $stmt->fetchAll();
                         <i class="fas fa-tasks fa-3x text-muted mb-3"></i>
                         <h4>Brak zadań</h4>
                         <p class="text-muted">Stwórz swoje pierwsze zadanie, aby zacząć generować treści.</p>
-                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#taskModal">
-                            Stwórz zadanie
-                        </button>
+                        <?php if (!empty($ai_models)): ?>
+                            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#taskModal">
+                                Stwórz zadanie
+                            </button>
+                        <?php endif; ?>
                     </div>
                 <?php else: ?>
                     <div class="table-responsive">
@@ -219,6 +250,7 @@ $tasks = $stmt->fetchAll();
                                     <th>Nazwa zadania</th>
                                     <th>Projekt</th>
                                     <th>Typ treści</th>
+                                    <th>Model AI</th>
                                     <th>Status</th>
                                     <th>Postęp</th>
                                     <th>Poziom naturalności</th>
@@ -232,6 +264,14 @@ $tasks = $stmt->fetchAll();
                                         <td><?= htmlspecialchars($task['name']) ?></td>
                                         <td><?= htmlspecialchars($task['project_name']) ?></td>
                                         <td><?= htmlspecialchars($task['content_type_name']) ?></td>
+                                        <td>
+                                            <?php if ($task['ai_model_name']): ?>
+                                                <small class="text-muted"><?= htmlspecialchars($task['ai_provider_name']) ?></small><br>
+                                                <strong><?= htmlspecialchars($task['ai_model_name']) ?></strong>
+                                            <?php else: ?>
+                                                <span class="text-warning">Brak modelu</span>
+                                            <?php endif; ?>
+                                        </td>
                                         <td>
                                             <?php
                                             $status_classes = [
@@ -295,7 +335,7 @@ $tasks = $stmt->fetchAll();
                     </div>
                     <div class="modal-body">
                         <div class="row">
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <div class="mb-3">
                                     <label for="project_id" class="form-label">Projekt *</label>
                                     <select class="form-select" name="project_id" required>
@@ -308,13 +348,26 @@ $tasks = $stmt->fetchAll();
                                     </select>
                                 </div>
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <div class="mb-3">
                                     <label for="content_type_id" class="form-label">Typ treści *</label>
                                     <select class="form-select" name="content_type_id" id="content_type_id" required onchange="loadContentTypeFields()">
                                         <option value="">Wybierz typ treści</option>
                                         <?php foreach ($content_types as $type): ?>
                                             <option value="<?= $type['id'] ?>"><?= htmlspecialchars($type['name']) ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="ai_model_id" class="form-label">Model AI *</label>
+                                    <select class="form-select" name="ai_model_id" required>
+                                        <option value="">Wybierz model AI</option>
+                                        <?php foreach ($ai_models as $model): ?>
+                                            <option value="<?= $model['id'] ?>">
+                                                <?= htmlspecialchars($model['provider_name']) ?> - <?= htmlspecialchars($model['name']) ?>
+                                            </option>
                                         <?php endforeach; ?>
                                     </select>
                                 </div>

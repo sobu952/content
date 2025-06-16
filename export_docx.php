@@ -40,6 +40,24 @@ if (empty($contents)) {
     exit;
 }
 
+/**
+ * Czyści tekst z fragmentów markdown i niepożądanych elementów
+ */
+function cleanContentForExport($text) {
+    // Usuń fragmenty ```html i ```
+    $text = preg_replace('/```html\s*/i', '', $text);
+    $text = preg_replace('/```\s*$/', '', $text);
+    $text = preg_replace('/```/', '', $text);
+    
+    // Usuń inne popularne fragmenty markdown
+    $text = preg_replace('/^```[a-zA-Z]*\s*/m', '', $text);
+    
+    // Usuń nadmiarowe białe znaki
+    $text = trim($text);
+    
+    return $text;
+}
+
 // Utwórz dokument DOCX
 $filename = 'content_' . $task_id . '_' . date('Y-m-d_H-i-s') . '.docx';
 
@@ -287,6 +305,9 @@ $document_content = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 foreach ($contents as $content) {
     $url = htmlspecialchars($content['url'], ENT_XML1, 'UTF-8');
     $text = $content['verified_text'] ?: $content['generated_text'];
+    
+    // Wyczyść tekst przed eksportem
+    $text = cleanContentForExport($text);
     
     // Dodaj URL jako nagłówek 1
     $document_content .= '<w:p><w:pPr><w:pStyle w:val="Heading1"/></w:pPr><w:r><w:t>' . $url . '</w:t></w:r></w:p>';
